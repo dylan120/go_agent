@@ -136,6 +136,7 @@ func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool
 				doc = doc.Append("start_time", bsonx.Int32(int32(event.StartTime)))
 			}
 			doc = doc.Append("end_time", bsonx.Int32(int32(event.EndTime)))
+			doc = doc.Append("time_consuming", bsonx.Int32(int32(event.EndTime-event.EndTime)))
 
 			log.Debug(doc)
 			doc.Set("result",
