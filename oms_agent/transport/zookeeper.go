@@ -86,7 +86,6 @@ func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, erro
 		}
 		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
 			_, err = zkClient.Create(nodePath, []byte("0"), 0, zk.WorldACL(zk.PermAll))
-
 		}
 	}
 	return zkClient, nodePath, err

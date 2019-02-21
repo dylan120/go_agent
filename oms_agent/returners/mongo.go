@@ -59,8 +59,6 @@ func MongoConnect(opts *config.MasterOptions) *mongo.Client {
 	if created {
 		log.Debug("create a db instance")
 
-	} else {
-		log.Debug("reuse a db instance")
 	}
 	return mongoInstance
 }

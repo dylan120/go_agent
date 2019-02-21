@@ -66,8 +66,6 @@ func Connect(opts *config.MasterOptions) *sql.DB {
 	if created {
 		log.Info("create a db instance")
 
-	} else {
-		log.Info("reuse a db instance")
 	}
 	return instance
 }
