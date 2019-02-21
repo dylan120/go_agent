@@ -32,7 +32,12 @@ func SqlJob(step *utils.Step, server transport.ServerChannel) {
 func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) bool {
 	isSuccess := false
 	isBreak := false
+	//timeout := time.Duration(opts.TimeOut) * time.Second
+	timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
 	for {
+		if time.Now().Unix() > timeoutAt {
+			log.Errorf("minion time out %ds", opts.TimeOut)
+		}
 		zkClient, nodePath, err := transport.JobRegister(opts, jid)
 		_, _, eventChan, err := zkClient.GetW(nodePath)
 		if !utils.CheckError(err) {
@@ -54,6 +59,10 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 						}
 					}
 				}
+			default:
+				log.Debug("")
+				time.Sleep(100 * time.Millisecond)
+				timeout -= 100 * time.Millisecond
 			}
 		}
 		if isBreak {
