@@ -37,6 +37,7 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 	for {
 		if time.Now().Unix() > timeoutAt {
 			log.Errorf("minion time out %ds", opts.TimeOut)
+			break
 		}
 		zkClient, nodePath, err := transport.JobRegister(opts, jid)
 		_, _, eventChan, err := zkClient.GetW(nodePath)
@@ -61,6 +62,7 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 				}
 			default:
 				time.Sleep(100 * time.Millisecond)
+				continue
 				//timeout -= 100 * time.Millisecond
 			}
 		}
