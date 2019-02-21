@@ -134,6 +134,11 @@ func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool
 			if doc.LookupElement("job_type").Value.NullOK() {
 				doc = doc.Append("job_type", bsonx.Int32(int32(event.JobType)))
 			}
+			if doc.LookupElement("start_time").Value.NullOK() {
+				doc = doc.Append("start_time", bsonx.Int32(int32(event.StartTime)))
+			}
+			doc = doc.Append("end_time", bsonx.Int32(int32(event.EndTime)))
+
 			log.Debug(doc)
 			doc.Set("result",
 				bsonx.String(fmt.Sprintf("%v%s", doc.LookupElement("result").Value, event.Result)))
