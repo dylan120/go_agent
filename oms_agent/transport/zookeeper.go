@@ -41,9 +41,6 @@ func Connect(opts *config.MasterOptions) *zk.Conn {
 
 	if created {
 		log.Debug("create a zk cient instance")
-
-	} else {
-		log.Debug("reuse a zk cient instance")
 	}
 	return instance
 
