@@ -18,7 +18,7 @@ type AuthLoad struct {
 }
 
 func SelectOptimalMaster() string {
-	return "192.168.0.206"
+	return "0.0.0.0"
 }
 
 func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, error) {
