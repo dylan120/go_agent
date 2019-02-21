@@ -102,7 +102,7 @@ func JobUpdate(opts *config.MasterOptions, jid string) error {
 	log.Debug("xxxxxx")
 	if zkClient != nil {
 		nodePath = filepath.Join(JobPrefix, jid)
-		log.Debug("xxxxxx")
+		log.Debug(nodePath)
 		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
 			data, _, err := zkClient.Get(nodePath)
 			if !utils.CheckError(err) {
