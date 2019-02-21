@@ -104,11 +104,11 @@ func JobUpdate(opts *config.MasterOptions, jid string) error {
 		nodePath = filepath.Join(JobPrefix, jid)
 		log.Debug(nodePath)
 		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
-			data, _, err := zkClient.Get(nodePath)
+			data, stat, err := zkClient.Get(nodePath)
 			if !utils.CheckError(err) {
 				count, err = strconv.Atoi(string(data))
 				count += 1
-				_, err = zkClient.Set(nodePath, []byte(strconv.Itoa(count)), -1)
+				_, err = zkClient.Set(nodePath, []byte(strconv.Itoa(count)), stat.Cversion)
 			}
 		}
 	}
