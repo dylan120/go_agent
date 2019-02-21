@@ -35,8 +35,6 @@ func GetAESKey() []byte {
 	if created {
 		log.Debugf("create a aes key %s\n", string(cInstance))
 
-	} else {
-		log.Debug("reuse a aes key\n")
 	}
 	return cInstance
 }
