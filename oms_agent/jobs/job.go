@@ -63,7 +63,6 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 			default:
 				time.Sleep(100 * time.Millisecond)
 				continue
-				//timeout -= 100 * time.Millisecond
 			}
 		}
 		if isBreak {

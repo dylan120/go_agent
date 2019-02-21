@@ -7,6 +7,7 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -24,7 +25,7 @@ var (
 	JobPrefix    = "/jobs"
 )
 
-func Connect(opts *config.MasterOptions) *zk.Conn {
+func ZKConnect(opts *config.MasterOptions) *zk.Conn {
 
 	created := false
 	once.Do(func() {
@@ -47,7 +48,7 @@ func Connect(opts *config.MasterOptions) *zk.Conn {
 }
 
 func NodeRegister(opts *config.MasterOptions) {
-	zkClient := Connect(opts)
+	zkClient := ZKConnect(opts)
 	if zkClient != nil {
 		nodePath := filepath.Join(MasterPrefix, opts.Region, opts.ID)
 		regionPath := filepath.Join(MasterPrefix, opts.Region)
@@ -78,7 +79,7 @@ func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, erro
 		nodePath string
 		err      error
 	)
-	zkClient := Connect(opts)
+	zkClient := ZKConnect(opts)
 	if zkClient != nil {
 		nodePath = filepath.Join(JobPrefix, jid)
 		if isTrue, _, _ := zkClient.Exists(JobPrefix); !isTrue {
@@ -89,4 +90,25 @@ func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, erro
 		}
 	}
 	return zkClient, nodePath, err
+}
+
+func JobUpdate(opts *config.MasterOptions, jid string) error {
+	var (
+		nodePath string
+		count    int
+		err      error
+	)
+	zkClient := ZKConnect(opts)
+	if zkClient != nil {
+		nodePath = filepath.Join(JobPrefix, jid)
+		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
+			data, _, err := zkClient.Get(nodePath)
+			if !utils.CheckError(err) {
+				count, err = strconv.Atoi(string(data))
+				count += 1
+				_, err = zkClient.Set(nodePath, []byte(strconv.Itoa(count)), -1)
+			}
+		}
+	}
+	return err
 }

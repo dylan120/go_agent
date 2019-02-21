@@ -16,7 +16,6 @@ import (
 type Master struct {
 	AESSecret []byte
 	Opts      *config.MasterOptions
-	//Manager   *utils.RunerManager
 }
 
 func NewMaster(opts *config.MasterOptions) *Master {
@@ -49,7 +48,9 @@ func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 				if !utils.CheckError(err) {
 					log.Debugf("receive event data: %s", event)
 					if strings.HasPrefix(event.Tag, "/job") {
-						//returners.UpdateMinionStatus(opts, event.JID, "*", utils.Wait, false)
+						if event.Retcode == utils.Success || event.Retcode == utils.Failure {
+							transport.JobUpdate(opts, event.JID)
+						}
 						returners.UpdateMinion(opts, []*utils.Event{&event}, true)
 					}
 				}
