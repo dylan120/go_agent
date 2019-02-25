@@ -28,11 +28,11 @@ func RunReflectArgsFunc(obj interface{}, funcName string, args ...interface{}) [
 }
 
 var (
-	pluginMap map[string]*plugin.Plugin
-	funcMap   map[string]interface{}
+	pluginMap = make(map[string]*plugin.Plugin)
+	funcMap   = make(map[string]interface{})
 )
 
-func InitPlugins(opt *config.MinionOptions) map[string]interface{} {
+func InitPlugins(opt *config.MinionOptions) {
 	base := filepath.Join(opt.BaseDir, "oms_agent/modules")
 	files, err := ioutil.ReadDir(base)
 	if !CheckError(err) {
@@ -62,7 +62,7 @@ func InitPlugins(opt *config.MinionOptions) map[string]interface{} {
 			}
 		}
 	}
-	return funcMap
+	//return funcMap
 }
 
 func LoadFunc(funcName string) interface{} {
