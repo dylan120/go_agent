@@ -33,12 +33,12 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 	isBreak := false
 	//timeout := time.Duration(opts.TimeOut) * time.Second
 	//timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
+	zkClient, jobPath, _ := transport.JobRegister(opts, jid)
 	for {
 		//if time.Now().Unix() > timeoutAt {
 		//	log.Errorf("minion time out %ds", opts.TimeOut)
 		//	break
 		//}
-		zkClient, jobPath, err := transport.JobRegister(opts, jid)
 		_, _, eventChan, err := zkClient.ChildrenW(jobPath)
 		if !utils.CheckError(err) {
 			isBreak = true
