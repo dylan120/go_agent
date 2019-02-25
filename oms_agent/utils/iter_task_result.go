@@ -15,8 +15,7 @@ import (
 )
 
 type processInfo struct {
-	jid string `json:"jid"`
-	//function  string   `json:"function"`
+	jid       string   `json:"jid"`
 	processID int      `json:"process_id"`
 	cmd       []string `json:"cmd"`
 }
@@ -28,6 +27,7 @@ func writeProcInfo(procDir string, procInfo processInfo) {
 		os.Mkdir(procDir, 0555)
 	}
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0655)
+	defer f.Close()
 	if !CheckError(err) {
 		data, err := json.Marshal(procInfo)
 		if !CheckError(err) {
