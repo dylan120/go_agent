@@ -27,9 +27,12 @@ func RunReflectArgsFunc(obj interface{}, funcName string, args ...interface{}) [
 
 }
 
-var funcMap = make(map[string]interface{})
+var (
+	pluginMap map[string]*plugin.Plugin
+	funcMap   map[string]interface{}
+)
 
-func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
+func InitPlugins(opt *config.MinionOptions) map[string]interface{} {
 	base := filepath.Join(opt.BaseDir, "oms_agent/modules")
 	files, err := ioutil.ReadDir(base)
 	if !CheckError(err) {
@@ -46,38 +49,32 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 
 				goFilePath := filepath.Join(base, fileName)
 				soFilePath := filepath.Join(base, pluginFile)
-				log.Debug(goRun)
+				plug, err := plugin.Open(soFilePath)
 				cmd := exec.Command(goRun,
 					"build", "--buildmode=plugin", "-o",
 					soFilePath, goFilePath)
 				out, err := cmd.CombinedOutput()
 				if !CheckError(err) {
-					plug, err := plugin.Open(soFilePath)
-					//if plug == nil {
-					//	plug, err = plugin.Open(soFilePath)
-					//}
-					if !CheckError(err) {
-						symbol, err := plug.Lookup("RegisterFunc")
-						if !CheckError(err) {
-							val := reflect.ValueOf(symbol).Elem()
-							funcs := val.Interface().([]string)
-							for _, f := range funcs {
-								function, _ := plug.Lookup(f)
-								fn := strings.Split(pluginFile, ".")
-								funcMap[fn[0]+"."+strings.ToLower(f)] = function
-							}
-						}
-						//*(**int)(unsafe.Pointer(plug)) = nil
-					}
+					pluginMap[fileName] = plug
 				} else {
 					log.Error(string(out))
 				}
 			}
-
-			if strings.HasSuffix(fileName, ".so") {
-
-			}
 		}
 	}
 	return funcMap
+}
+
+func LoadFunc(funcName string) interface{} {
+	a := strings.Split(funcName, ".")
+	if _, exist := funcMap[funcName]; !exist {
+		for _, plugin := range pluginMap {
+			function, err := plugin.Lookup(a[1])
+			if !CheckError(err) {
+				funcMap[funcName] = function
+				break
+			}
+		}
+	}
+	return funcMap[funcName]
 }

@@ -19,14 +19,15 @@ import (
 var JobTagPrefix = "/job"
 
 type Minion struct {
-	Opts    *config.MinionOptions
-	funcMap map[string]interface{}
+	Opts *config.MinionOptions
+	//funcMap map[string]interface{}
 }
 
 func NewMinion(opts *config.MinionOptions) *Minion {
+	utils.InitPlugins(opts)
 	return &Minion{
-		Opts:    opts,
-		funcMap: utils.LoadPlugins(opts),
+		Opts: opts,
+		//funcMap: utils.InitPlugins(opts),
 	}
 }
 
@@ -129,50 +130,50 @@ func (minion *Minion) fireEvent(tag string, event *utils.Event) bool {
 }
 
 func (minion *Minion) doTask(funcName string, step utils.Step) {
-	if fun, ok := minion.funcMap[funcName]; ok {
-		resultChannel := make(chan string)
-		nowTimestamp := time.Now().Unix()
-		timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
-		status := defaults.NewStatus()
-		fun.(func(utils.Step, string, chan string, *defaults.Status))(
-			step, minion.Opts.ProcDir, resultChannel, status)
+	fun := utils.LoadFunc(funcName)
+	resultChannel := make(chan string)
+	nowTimestamp := time.Now().Unix()
+	timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
+	status := defaults.NewStatus()
+	fun.(func(utils.Step, string, chan string, *defaults.Status))(
+		step, minion.Opts.ProcDir, resultChannel, status)
 
-		seq := 0
-		for result := range resultChannel {
-			tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
-			event := utils.Event{
-				Function: "event",
-				Tag:      tag,
-				MinionId: minion.Opts.ID,
-				JID:      step.InstanceID,
-				Result:   result,
-				Retcode:  defaults.Run,
-			}
-			minion.fireEvent(tag, &event)
-			seq += 1
-			if status.IsFinished == true || time.Now().Unix() > timeOutAt {
-				close(resultChannel)
-				//status.Set(defaults.TimeOut, fmt.Sprintf("job timeout with %d", step.TimeOut), true)
-				log.Debug(resultChannel == nil)
-			}
-		}
-
-		tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
+	seq := 0
+	for result := range resultChannel {
+		tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
 		event := utils.Event{
 			Function: "event",
 			Tag:      tag,
 			MinionId: minion.Opts.ID,
 			JID:      step.InstanceID,
-			Retcode:  status.Code,
-		}
-		if status.Code != defaults.Success {
-			log.Error(status.Desc)
-			event.Result = status.Desc
-		} else {
-			log.Debugf("job %s exit with code %d", step.Function, status.Code)
+			Result:   result,
+			Retcode:  defaults.Run,
 		}
 		minion.fireEvent(tag, &event)
+		seq += 1
+		if status.IsFinished == true || time.Now().Unix() > timeOutAt {
+			close(resultChannel)
+			//status.Set(defaults.TimeOut, fmt.Sprintf("job timeout with %d", step.TimeOut), true)
+			log.Debug(resultChannel == nil)
+		}
 	}
+
+	tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
+	event := utils.Event{
+		Function: "event",
+		Tag:      tag,
+		MinionId: minion.Opts.ID,
+		JID:      step.InstanceID,
+		Retcode:  status.Code,
+	}
+	if status.Code != defaults.Success {
+		log.Error(status.Desc)
+		event.Result = status.Desc
+	} else {
+		log.Debugf("job %s exit with code %d", step.Function, status.Code)
+	}
+	minion.fireEvent(tag, &event)
+
 }
 
 func test(opts *config.MinionOptions) {
