@@ -7,7 +7,6 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -92,22 +91,16 @@ func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, erro
 	return zkClient, nodePath, err
 }
 
-func JobUpdate(opts *config.MasterOptions, jid string) error {
+func JobUpdate(opts *config.MasterOptions, jid string, minions string) error {
 	var (
 		nodePath string
-		count    int
 		err      error
 	)
 	zkClient := ZKConnect(opts)
 	if zkClient != nil {
-		nodePath = filepath.Join(JobPrefix, jid)
-		if isTrue, _, _ := zkClient.Exists(nodePath); isTrue {
-			data, stat, err := zkClient.Get(nodePath)
-			if !utils.CheckError(err) {
-				count, err = strconv.Atoi(string(data))
-				count += 1
-				_, err = zkClient.Set(nodePath, []byte(strconv.Itoa(count)), stat.Cversion)
-			}
+		nodePath = filepath.Join(JobPrefix, jid, minions)
+		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
+			_, err = zkClient.Create(nodePath, []byte(""), 0, zk.WorldACL(zk.PermAll))
 		}
 	}
 	return err
