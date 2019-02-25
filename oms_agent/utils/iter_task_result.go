@@ -26,7 +26,7 @@ func writeProcInfo(procDir string, procInfo processInfo) {
 	if _, err := os.Stat(procDir); os.IsNotExist(err) {
 		os.Mkdir(procDir, 0555)
 	}
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0655)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
 	defer f.Close()
 	if !CheckError(err) {
 		data, err := json.Marshal(procInfo)
