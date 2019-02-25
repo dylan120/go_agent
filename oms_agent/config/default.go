@@ -45,7 +45,7 @@ var MOpts = MinionOptions{
 	"/opt/go_agent",
 	"minion",
 	"5a1cf523-39b2-4eee-8a28-978253224b70",
-	[]Master{Master{"master1", "192.168.0.206"}},
+	[]Master{Master{"master1", "127.0.0.1"}},
 	"",
 	"sh",
 	"127.0.0.1",
