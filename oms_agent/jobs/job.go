@@ -45,6 +45,7 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 			select {
 			case <-eventChan:
 				children, _, err := zkClient.Children(jobPath)
+				log.Debug(len(children))
 				if !utils.CheckError(err) {
 					isBreak = true
 					if len(children) == minionCount {
