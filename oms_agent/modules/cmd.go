@@ -69,7 +69,7 @@ func getScriptInterruptor(scriptContent string, interruptorType string) string {
 	return scriptInterruptor
 }
 
-func Run(step utils.Step, resultChannel chan string, status *defaults.Status) {
+func Run(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	d, _ := json.Marshal(&step)
 	log.Debug(string(d))
 	var (
@@ -110,7 +110,7 @@ func Run(step utils.Step, resultChannel chan string, status *defaults.Status) {
 		err = ioutil.WriteFile(scriptPath, []byte(scriptContent), 0500)
 		if !utils.CheckError(err) {
 			//run the script
-			utils.IterTaskResult(jid, scriptInterruptor, scriptPath, scriptParam, timeOut, resultChannel, status)
+			utils.IterJobResult(jid, procDir, scriptInterruptor, scriptPath, scriptParam, timeOut, resultChannel, status)
 		}
 
 	} else {

@@ -28,11 +28,15 @@ func SqlJob(step *utils.Step, server transport.ServerChannel) {
 
 }
 
-func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) bool {
-	isSuccess := false
-	isBreak := false
+func checkJobStatus(opts *config.MasterOptions, jid string, minions []string) bool {
+	var (
+		isSuccess = false
+		isBreak   = false
+		children  []string
+	)
 	//timeout := time.Duration(opts.TimeOut) * time.Second
 	//timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
+	timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
 	zkClient, jobPath, _ := transport.JobRegister(opts, jid)
 	for {
 		//if time.Now().Unix() > timeoutAt {
@@ -44,16 +48,16 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 			isBreak = true
 			select {
 			case <-eventChan:
-				children, _, err := zkClient.Children(jobPath)
-				log.Debug(len(children))
+				children, _, err = zkClient.Children(jobPath)
+				log.Debug(len(minions))
 				if !utils.CheckError(err) {
 					isBreak = true
-					if len(children) == minionCount {
+					if len(children) == len(minions) {
 						isBreak = true
 						isSuccess = true
 					}
 				}
-			case <-time.After(time.Duration(opts.TimeOut) * time.Second):
+			case <-timeout:
 				log.Errorf("minion time out %ds", opts.TimeOut)
 				time.Sleep(100 * time.Millisecond)
 				isBreak = true
@@ -124,7 +128,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 			case utils.SqlType:
 				SqlJob(&step, server)
 			}
-			isSuccess := checkJobStatus(opts, jid, len(step.Minions))
+			isSuccess := checkJobStatus(opts, jid, step.Minions)
 			if isSuccess {
 				if step.IsPause {
 					status = utils.Stop

@@ -75,6 +75,7 @@ type MinionOptions struct {
 	RetPort           int      `json:"ret_port"`
 	Transport         string   `json:"transport"`
 	SockDir           string   `json:"sock_dir"`
+	ProcDir           string   `json:"proc_dir"`
 	PublishPort       int      `json:"PublishPort"`
 	ProxyPort         int      `json:"proxy_port"`
 	MaxOpenFile       int      `json:"max_open_file"`

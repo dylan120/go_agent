@@ -3,15 +3,40 @@ package utils
 import (
 	"../defaults"
 	"bufio"
+	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"syscall"
 	"time"
 )
 
-func IterTaskResult(jid string, scriptInterruptor string,
+type processInfo struct {
+	jid string `json:"jid"`
+	//function  string   `json:"function"`
+	processID int      `json:"process_id"`
+	cmd       []string `json:"cmd"`
+}
+
+func writeProcInfo(procDir string, procInfo processInfo) {
+	path := filepath.Join(procDir, procInfo.jid)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		file, err := os.Create(path)
+		defer file.Close()
+		if !CheckError(err) {
+			data, err := json.Marshal(procInfo)
+			if !CheckError(err) {
+				file.Write(data)
+			}
+		}
+	}
+
+}
+
+func IterJobResult(jid string, procDir string, scriptInterruptor string,
 	script string, scriptParams string, timeout int, resultChannel chan string, status *defaults.Status) {
 	nowTimestamp := time.Now().Unix()
 	timeOutAt := nowTimestamp + int64(timeout)
@@ -25,6 +50,13 @@ func IterTaskResult(jid string, scriptInterruptor string,
 	cmd.Stderr = cmd.Stdout
 	err := cmd.Start()
 	log.Info(cmd.Process.Pid)
+
+	writeProcInfo(procDir, processInfo{
+		jid:       jid,
+		processID: cmd.Process.Pid,
+		cmd:       []string{scriptInterruptor, script, scriptParams},
+	})
+
 	if !CheckError(err) {
 		go func() {
 			scanner := bufio.NewScanner(stdout)

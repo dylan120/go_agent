@@ -75,9 +75,9 @@ func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
 	for {
 		var (
 			err     error
-			payload = utils.Payload{}
-			load    = utils.Load{}
-			step    = utils.Step{}
+			payload utils.Payload
+			load    utils.Load
+			step    utils.Step
 		)
 		recvPayLoad, err := subSock.RecvBytes(0)
 		err = utils.Loads(recvPayLoad, &payload)
@@ -88,7 +88,6 @@ func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
 				if !utils.CheckError(err) {
 					err = json.Unmarshal(load.Data, &step)
 					if !utils.CheckError(err) {
-						//err = json.Unmarshal(load.Data, &step)
 						if err == nil {
 							if minion.CheckPayload(&load) {
 								log.Infof("receive job with id %s : %s", step.InstanceID, step.Function)
@@ -97,10 +96,8 @@ func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
 						} else {
 							log.Errorf("receive unexpected data structure")
 						}
-
 					}
 				}
-
 			}
 		}
 	}
@@ -137,8 +134,8 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 		nowTimestamp := time.Now().Unix()
 		timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
 		status := defaults.NewStatus()
-		fun.(func(utils.Step, chan string, *defaults.Status))(
-			step, resultChannel, status)
+		fun.(func(utils.Step, string, chan string, *defaults.Status))(
+			step, minion.Opts.pr, resultChannel, status)
 
 		seq := 0
 		for result := range resultChannel {

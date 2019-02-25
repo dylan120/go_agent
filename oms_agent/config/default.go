@@ -52,6 +52,7 @@ var MOpts = MinionOptions{
 	33511,
 	"zeromq",
 	"/usr/local/go_agent/sock",
+	"/tmp/proc",
 	33510,
 	33512,
 	65565,
