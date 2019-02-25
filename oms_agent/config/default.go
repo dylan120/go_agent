@@ -36,7 +36,7 @@ var Opts = MasterOptions{
 		Mysql: Mysql{Ip: "127.0.0.1", Port: 3306, User: "root", Passwd: "123456", DB: "oms_agent"},
 		Mongo: Mongo{Ip: "127.0.0.1", Port: 27017, User: "agent", Passwd: "123456", DB: "agent", AuthSource: "admin"},
 	},
-	[]string{"192.168.0.206:2181"},
+	[]string{"127.0.01:2181"},
 	"/tmp/",
 	true,
 }
