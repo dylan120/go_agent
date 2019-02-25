@@ -30,6 +30,7 @@ func writeProcInfo(procDir string, procInfo processInfo) {
 	defer f.Close()
 	if !CheckError(err) {
 		data, err := json.Marshal(procInfo)
+		log.Debug(string(data))
 		if !CheckError(err) {
 			f.Write(data)
 		}
