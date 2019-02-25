@@ -177,38 +177,6 @@ func (reqServer *ZMQReqServerChannel) PostFork(i int, handlePayLoad func(*config
 
 func (reqServer *ZMQReqServerChannel) Publish(target []string, data []byte) {}
 
-//func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
-//	var (
-//		err  error
-//		data = []byte(``)
-//		load = utils.Load{}
-//	)
-//	payLoad := utils.Payload{}
-//	err = utils.UnPackPayload(msg, &payLoad)
-//
-//	if err == nil {
-//		err = json.Unmarshal(payLoad.Data, &load)
-//		if !utils.CheckError(err) {
-//			switch load.Function {
-//			case "auth":
-//				data, err = auth.Auth(opts, &load, false)
-//			case "reAuth":
-//				data, err = auth.ReAuth(opts, &load)
-//			default: //event data
-//				event := utils.Event{}
-//				err = json.Unmarshal(load.Data, &event)
-//				if !utils.CheckError(err) {
-//					log.Debugf("receive event data:", event)
-//					if strings.HasPrefix(event.Tag, "/job") {
-//						returners.UpdateMinionStatus(opts, jid, "*", utils.Wait, false)
-//					}
-//				}
-//			}
-//		}
-//	}
-//	return utils.PackPayload(data, payLoad.Crypt), err
-//}
-
 func (pubServer *ZMQPubServerChannel) PreFork() {
 	context, _ := zmq.NewContext()
 	defer context.Term()

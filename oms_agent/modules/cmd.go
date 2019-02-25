@@ -118,5 +118,3 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 	}
 
 }
-
-var RegisterFunc = []string{"Run"}

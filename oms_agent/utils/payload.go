@@ -94,6 +94,12 @@ type MasterPayload struct {
 	Crypt string
 }
 
+type ProcessInfo struct {
+	JID       string   `json:"jid"`
+	ProcessID int      `json:"process_id"`
+	Cmd       []string `json:"cmd"`
+}
+
 func Dumps(data interface{}) ([]byte, error) {
 	ret, err := msgpack.Marshal(&data)
 	return ret, err

@@ -14,13 +14,7 @@ import (
 	"time"
 )
 
-type processInfo struct {
-	JID       string   `json:"jid"`
-	ProcessID int      `json:"process_id"`
-	Cmd       []string `json:"cmd"`
-}
-
-func writeProcInfo(procDir string, procInfo processInfo) {
+func writeProcInfo(procDir string, procInfo ProcessInfo) {
 	path := filepath.Join(procDir, procInfo.JID)
 
 	if _, err := os.Stat(procDir); os.IsNotExist(err) {
@@ -30,7 +24,6 @@ func writeProcInfo(procDir string, procInfo processInfo) {
 	defer f.Close()
 	if !CheckError(err) {
 		data, err := json.Marshal(procInfo)
-		log.Debug(string(data))
 		if !CheckError(err) {
 			f.Write(data)
 		}
@@ -53,7 +46,7 @@ func IterJobResult(jid string, procDir string, scriptInterruptor string,
 	err := cmd.Start()
 	log.Info(cmd.Process.Pid)
 
-	info := processInfo{
+	info := ProcessInfo{
 		JID:       jid,
 		ProcessID: cmd.Process.Pid,
 		Cmd:       []string{scriptInterruptor, script, scriptParams},
