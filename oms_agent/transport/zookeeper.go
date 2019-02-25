@@ -105,3 +105,19 @@ func JobUpdate(opts *config.MasterOptions, jid string, minion string) error {
 	}
 	return err
 }
+
+func JobDone(opts *config.MasterOptions, jid string) error {
+	var (
+		nodePath string
+		isTrue   bool
+		err      error
+	)
+	zkClient := ZKConnect(opts)
+	if zkClient != nil {
+		nodePath = filepath.Join(JobPrefix, jid)
+		if isTrue, _, err = zkClient.Exists(JobPrefix); !isTrue {
+			zkClient.Delete(nodePath, -1)
+		}
+	}
+	return err
+}
