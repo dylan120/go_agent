@@ -91,15 +91,16 @@ func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, erro
 	return zkClient, nodePath, err
 }
 
-func JobUpdate(opts *config.MasterOptions, jid string, minions string) error {
+func JobUpdate(opts *config.MasterOptions, jid string, minion string) error {
 	var (
 		nodePath string
 		err      error
 	)
 	zkClient := ZKConnect(opts)
 	if zkClient != nil {
-		nodePath = filepath.Join(JobPrefix, jid, minions)
+		nodePath = filepath.Join(JobPrefix, jid, minion)
 		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
+			log.Debug("xxxxxxxx")
 			_, err = zkClient.Create(nodePath, []byte(""), 0, zk.WorldACL(zk.PermAll))
 		}
 	}
