@@ -67,22 +67,25 @@ func InitPlugins(opt *config.MinionOptions) {
 }
 
 func LoadFunc(funcName string) interface{} {
+	defer func() {
+		fmt.Println("c")
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("d")
+	}()
 	a := strings.Split(funcName, ".")
 	if _, exist := funcMap[funcName]; !exist {
 
 		for _, plugin := range pluginMap {
-			defer func() {
-				fmt.Println("c")
-				if err := recover(); err != nil {
-					fmt.Println(err)
-				}
-				fmt.Println("d")
-			}()
 
 			function, err := plugin.Lookup(a[1])
 			if !CheckError(err) {
-				funcMap[funcName] = function
-				break
+				if function != nil {
+					funcMap[funcName] = function
+					break
+				}
+
 			}
 		}
 	}
