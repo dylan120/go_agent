@@ -135,7 +135,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 		timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
 		status := defaults.NewStatus()
 		fun.(func(utils.Step, string, chan string, *defaults.Status))(
-			step, minion.Opts.pr, resultChannel, status)
+			step, minion.Opts.ProcDir, resultChannel, status)
 
 		seq := 0
 		for result := range resultChannel {
