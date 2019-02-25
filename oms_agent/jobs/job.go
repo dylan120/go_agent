@@ -39,7 +39,7 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 		//	break
 		//}
 		zkClient, jobPath, err := transport.JobRegister(opts, jid)
-		_, _, eventChan, err := zkClient.GetW(jobPath)
+		_, _, eventChan, err := zkClient.ChildrenW(jobPath)
 		if !utils.CheckError(err) {
 			isBreak = true
 			select {
