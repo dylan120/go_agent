@@ -115,7 +115,7 @@ func JobDone(opts *config.MasterOptions, jid string) error {
 	zkClient := ZKConnect(opts)
 	if zkClient != nil {
 		nodePath = filepath.Join(JobPrefix, jid)
-		if isTrue, _, err = zkClient.Exists(JobPrefix); !isTrue {
+		if isTrue, _, err = zkClient.Exists(JobPrefix); isTrue {
 			zkClient.Delete(nodePath, -1)
 		}
 	}
