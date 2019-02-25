@@ -15,13 +15,13 @@ import (
 )
 
 type processInfo struct {
-	jid       string   `json:"jid"`
-	processID int      `json:"process_id"`
-	cmd       []string `json:"cmd"`
+	JID       string   `json:"jid"`
+	ProcessID int      `json:"process_id"`
+	Cmd       []string `json:"cmd"`
 }
 
 func writeProcInfo(procDir string, procInfo processInfo) {
-	path := filepath.Join(procDir, procInfo.jid)
+	path := filepath.Join(procDir, procInfo.JID)
 
 	if _, err := os.Stat(procDir); os.IsNotExist(err) {
 		os.Mkdir(procDir, 0555)
@@ -54,9 +54,9 @@ func IterJobResult(jid string, procDir string, scriptInterruptor string,
 	log.Info(cmd.Process.Pid)
 
 	info := processInfo{
-		jid:       jid,
-		processID: cmd.Process.Pid,
-		cmd:       []string{scriptInterruptor, script, scriptParams},
+		JID:       jid,
+		ProcessID: cmd.Process.Pid,
+		Cmd:       []string{scriptInterruptor, script, scriptParams},
 	}
 	writeProcInfo(procDir, info)
 
