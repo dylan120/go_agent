@@ -53,11 +53,12 @@ func IterJobResult(jid string, procDir string, scriptInterruptor string,
 	err := cmd.Start()
 	log.Info(cmd.Process.Pid)
 
-	writeProcInfo(procDir, processInfo{
+	info := processInfo{
 		jid:       jid,
 		processID: cmd.Process.Pid,
 		cmd:       []string{scriptInterruptor, script, scriptParams},
-	})
+	}
+	writeProcInfo(procDir, info)
 
 	if !CheckError(err) {
 		go func() {
