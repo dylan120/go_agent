@@ -63,6 +63,7 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 			break
 		}
 	}
+	utils.CheckError(transport.JobDone(opts, jid))
 	return isSuccess
 }
 
