@@ -99,12 +99,9 @@ func JobUpdate(opts *config.MasterOptions, jid string) error {
 		err      error
 	)
 	zkClient := ZKConnect(opts)
-	log.Debug("xxxxxx")
 	if zkClient != nil {
 		nodePath = filepath.Join(JobPrefix, jid)
-		log.Debug(nodePath)
 		if isTrue, _, _ := zkClient.Exists(nodePath); isTrue {
-			log.Debug(nodePath)
 			data, stat, err := zkClient.Get(nodePath)
 			if !utils.CheckError(err) {
 				count, err = strconv.Atoi(string(data))
