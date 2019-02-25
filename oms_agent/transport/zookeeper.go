@@ -85,7 +85,7 @@ func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, erro
 			zkClient.Create(JobPrefix, []byte(JobPrefix), 0, zk.WorldACL(zk.PermAll))
 		}
 		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
-			_, err = zkClient.Create(nodePath, []byte("0"), 0, zk.WorldACL(zk.PermAll))
+			_, err = zkClient.Create(nodePath, []byte("0"), int32(zk.FlagEphemeral), zk.WorldACL(zk.PermAll))
 		}
 	}
 	return zkClient, nodePath, err
@@ -100,7 +100,6 @@ func JobUpdate(opts *config.MasterOptions, jid string, minion string) error {
 	if zkClient != nil {
 		nodePath = filepath.Join(JobPrefix, jid, minion)
 		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
-			log.Debug("xxxxxxxx")
 			_, err = zkClient.Create(nodePath, []byte(""), 0, zk.WorldACL(zk.PermAll))
 		}
 	}
