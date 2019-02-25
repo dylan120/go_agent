@@ -52,9 +52,11 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 						isSuccess = true
 					}
 				}
-			default:
+			case <-time.After(time.Duration(opts.TimeOut) * time.Second):
 				time.Sleep(100 * time.Millisecond)
-				continue
+				//default:
+				//	time.Sleep(100 * time.Millisecond)
+				//	continue
 			}
 		}
 		if isBreak {
