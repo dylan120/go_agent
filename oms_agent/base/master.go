@@ -49,7 +49,7 @@ func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 					log.Debugf("receive event data: %s", event)
 					if strings.HasPrefix(event.Tag, "/job") {
 						if event.Retcode == utils.Success || event.Retcode == utils.Failure {
-							err := transport.JobUpdate(opts, event.JID)
+							err := transport.JobUpdate(opts, event.JID, event.MinionId)
 							utils.CheckError(err)
 						}
 						returners.UpdateMinion(opts, []*utils.Event{&event}, true)

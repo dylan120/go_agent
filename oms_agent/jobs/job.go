@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 	"time"
 )
 
@@ -39,30 +38,23 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minionCount int) boo
 			log.Errorf("minion time out %ds", opts.TimeOut)
 			break
 		}
-		zkClient, nodePath, err := transport.JobRegister(opts, jid)
-		_, _, eventChan, err := zkClient.GetW(nodePath)
+		zkClient, jobPath, err := transport.JobRegister(opts, jid)
+		_, _, eventChan, err := zkClient.GetW(jobPath)
 		if !utils.CheckError(err) {
 			isBreak = true
 			select {
 			case <-eventChan:
-				data, _, err := zkClient.Get(nodePath)
+				children, _, err := zkClient.Children(jobPath)
 				if !utils.CheckError(err) {
 					isBreak = true
-					count, err := strconv.Atoi(string(data))
-
-					if !utils.CheckError(err) {
-						log.Debug(count)
-						log.Debug(minionCount)
-						log.Debug(count == minionCount)
-						if count == minionCount {
-							isBreak = true
-							isSuccess = true
-						}
+					if len(children) == minionCount {
+						isBreak = true
+						isSuccess = true
 					}
 				}
-				//default:
-				//	time.Sleep(100 * time.Millisecond)
-				//	continue
+			default:
+				time.Sleep(100 * time.Millisecond)
+				continue
 			}
 		}
 		if isBreak {
