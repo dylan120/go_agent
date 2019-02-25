@@ -23,6 +23,10 @@ type processInfo struct {
 
 func writeProcInfo(procDir string, procInfo processInfo) {
 	path := filepath.Join(procDir, procInfo.jid)
+
+	if _, err := os.Stat(procDir); os.IsNotExist(err) {
+		os.Mkdir(procDir, 0755)
+	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		file, err := os.Create(path)
 		defer file.Close()
