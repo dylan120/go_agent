@@ -62,7 +62,7 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 							//funcs := val.Interface().([]string)
 							function, _ := plug.Lookup(fname)
 							fn := strings.Split(pluginFile, ".")
-							funcMap[fn[0]+"."+strings.ToLower(name)] = function
+							funcMap[fn[0]+"."+strings.ToLower(fname)] = function
 						}
 					}
 				} else {
