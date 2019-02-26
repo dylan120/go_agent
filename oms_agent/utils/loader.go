@@ -56,15 +56,13 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 				out, err := cmd.CombinedOutput()
 				if !CheckError(err) {
 					for _, fname := range opt.RegisterFunc[name] {
-						symbol, err := plug.Lookup(fname)
+						//symbol, err := plug.Lookup(fnames)
 						if !CheckError(err) {
-							val := reflect.ValueOf(symbol).Elem()
-							funcs := val.Interface().([]string)
-							for _, f := range funcs {
-								function, _ := plug.Lookup(f)
-								fn := strings.Split(pluginFile, ".")
-								funcMap[fn[0]+"."+strings.ToLower(f)] = function
-							}
+							//val := reflect.ValueOf(symbol).Elem()
+							//funcs := val.Interface().([]string)
+							function, _ := plug.Lookup(fname)
+							fn := strings.Split(pluginFile, ".")
+							funcMap[fn[0]+"."+strings.ToLower(name)] = function
 						}
 					}
 				} else {
