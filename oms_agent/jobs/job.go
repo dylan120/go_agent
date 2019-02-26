@@ -7,9 +7,46 @@ import (
 	"../utils"
 	"encoding/json"
 	"fmt"
+	zmq "github.com/pebbe/zmq4"
 	log "github.com/sirupsen/logrus"
+	"path/filepath"
+	"strings"
 	"time"
 )
+
+func subscribeEvent(opts *config.MasterOptions, prefix string) <-chan utils.Event {
+	var (
+		eventChan = make(chan utils.Event)
+		err       error
+		event     utils.Event
+	)
+	context, _ := zmq.NewContext()
+	defer context.Term()
+	repSock, _ := context.NewSocket(zmq.REP)
+	defer repSock.Close()
+	repSock.Connect("ipc://" + filepath.Join(opts.SockDir, "dealer.ipc"))
+	for {
+		load := utils.Load{}
+		msg, _ := repSock.RecvBytes(0)
+		payLoad := utils.Payload{}
+		err = utils.UnPackPayload(msg, &payLoad)
+
+		if err == nil {
+			err = json.Unmarshal(payLoad.Data, &load)
+			if !utils.CheckError(err) {
+				if strings.HasPrefix(event.Tag, prefix) {
+					err = json.Unmarshal(load.Data, &event)
+					if !utils.CheckError(err) {
+						log.Debugf("receive event data: %s", event)
+						if strings.HasPrefix(event.Tag, "/job") {
+							eventChan <- event
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 func cmdJob(step *utils.Step, server transport.ServerChannel) {
 	data, err := json.Marshal(step)
@@ -32,37 +69,50 @@ func checkJobStatus(opts *config.MasterOptions, jid string, minions []string) bo
 	var (
 		isSuccess = false
 		isBreak   = false
-		children  []string
+		//children  []string
 	)
 	//timeout := time.Duration(opts.TimeOut) * time.Second
 	//timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
-	timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
-	zkClient, jobPath, _ := transport.JobRegister(opts, jid)
+	//zkClient, jobPath, _ := transport.JobRegister(opts, jid)
+
 	for {
 		//if time.Now().Unix() > timeoutAt {
 		//	log.Errorf("minion time out %ds", opts.TimeOut)
 		//	break
 		//}
-		_, _, eventChan, err := zkClient.ChildrenW(jobPath)
-		if !utils.CheckError(err) {
-			isBreak = true
-			select {
-			case <-eventChan:
-				children, _, err = zkClient.Children(jobPath)
-				log.Debug(len(minions))
-				if !utils.CheckError(err) {
-					isBreak = true
-					if len(children) == len(minions) {
-						isBreak = true
-						isSuccess = true
-					}
-				}
-			case <-timeout:
-				log.Errorf("minion time out %ds", opts.TimeOut)
+		timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
+		select {
+		case event := <-subscribeEvent(opts, "/job"):
+			if event.Function == "job.CheckAlive" && event.Params == jid {
 				time.Sleep(100 * time.Millisecond)
-				isBreak = true
+				//timeout = time.After(time.Duration(opts.TimeOut) * time.Second)
 			}
+		case <-timeout:
+			log.Errorf("minion time out %ds", opts.TimeOut)
+			time.Sleep(100 * time.Millisecond)
+			isBreak = true
 		}
+
+		//_, _, eventChan, err := zkClient.ChildrenW(jobPath)
+		//if !utils.CheckError(err) {
+		//	isBreak = true
+		//	select {
+		//	case <-eventChan:
+		//		children, _, err = zkClient.Children(jobPath)
+		//		log.Debug(len(minions))
+		//		if !utils.CheckError(err) {
+		//			isBreak = true
+		//			if len(children) == len(minions) {
+		//				isBreak = true
+		//				isSuccess = true
+		//			}
+		//		}
+		//	case <-timeout:
+		//		log.Errorf("minion time out %ds", opts.TimeOut)
+		//		time.Sleep(100 * time.Millisecond)
+		//		isBreak = true
+		//	}
+		//}
 		if isBreak {
 			break
 		}
@@ -111,7 +161,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 				status, true)
 			for _, mid := range step.Minions {
 				events = append(events, &utils.Event{
-					//Function: "event",
+					Function: step.Function,
 					JID:      jid,
 					MinionId: mid,
 					Retcode:  utils.Wait,
@@ -119,7 +169,6 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 				})
 			}
 			returners.UpdateMinion(opts, events, true)
-			//returners.UpdateMinionStatus(opts, jid, step.Minions, utils.Wait, true)
 			switch step.Type {
 			case utils.CmdType:
 				cmdJob(&step, server)

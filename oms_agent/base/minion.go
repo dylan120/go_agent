@@ -141,7 +141,8 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 		for result := range resultChannel {
 			tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
 			event := utils.Event{
-				Function: "event",
+				Function: funcName,
+				Params:   step.ScriptParam,
 				Tag:      tag,
 				MinionId: minion.Opts.ID,
 				JID:      step.InstanceID,
@@ -159,7 +160,8 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 
 		tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
 		event := utils.Event{
-			Function: "event",
+			Function: funcName,
+			Params:   step.ScriptParam,
 			Tag:      tag,
 			MinionId: minion.Opts.ID,
 			JID:      step.InstanceID,

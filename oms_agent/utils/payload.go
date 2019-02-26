@@ -63,6 +63,7 @@ type Event struct {
 	Tag           string `json:"tag"`
 	JID           string `json:"jid"`
 	MinionId      string `json:"minion_id"`
+	Params        string `json:"params"`
 	Retcode       int    `json:"retcode"`
 	Result        string `json:"result"`
 	JobType       int    `json:"job_type"`

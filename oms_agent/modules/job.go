@@ -25,8 +25,6 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 			if err != nil {
 				fmt.Printf("Failed to find process: %s\n", err)
 			} else {
-				//err := process.Signal(syscall.Signal(0))
-				//fmt.Printf("process.Signal on pid %d returned: %v\n", pid, err)
 				isAlive = true
 			}
 		}

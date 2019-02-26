@@ -150,6 +150,9 @@ func (reqServer *ZMQReqServerChannel) PreFork() {
 	defer context1.Term()
 	dealer, _ := context1.NewSocket(zmq.DEALER)
 	defer dealer.Close()
+	if _, err := os.Stat(reqServer.Opts.SockDir); os.IsNotExist(err) {
+		os.Mkdir(reqServer.Opts.SockDir, os.ModePerm) //TODO
+	}
 	dealer.Bind("ipc://" + filepath.Join(reqServer.Opts.SockDir, "dealer.ipc"))
 	log.Info("start request server...")
 	zmq.Proxy(router, dealer, nil)
@@ -162,14 +165,10 @@ func (reqServer *ZMQReqServerChannel) PostFork(i int, handlePayLoad func(*config
 	// Socket to talk to clients
 	repSock, _ := context.NewSocket(zmq.REP)
 	defer repSock.Close()
-	if _, err := os.Stat(reqServer.Opts.SockDir); os.IsNotExist(err) {
-		os.Mkdir(reqServer.Opts.SockDir, os.ModePerm) //TODO
-	}
 	repSock.Connect("ipc://" + filepath.Join(reqServer.Opts.SockDir, "dealer.ipc"))
 	for {
 		recvMsg, _ := repSock.RecvBytes(0)
 		log.Debugf("[worker %d]Received request: [%s]\n", i, recvMsg)
-		//out, _ := HandlePayLoad(reqServer.Opts, recvMsg) //TODO can make this a async task ?
 		out, _ := handlePayLoad(reqServer.Opts, recvMsg) //TODO can make this a async task ?
 		repSock.SendBytes(out, 0)
 	}
