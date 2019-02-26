@@ -28,7 +28,7 @@ func RunReflectArgsFunc(obj interface{}, funcName string, args ...interface{}) [
 }
 
 var (
-	funcMap map[string]interface{}
+	funcMap = make(map[string]interface{})
 )
 
 func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
