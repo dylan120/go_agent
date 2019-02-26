@@ -2,7 +2,6 @@ package utils
 
 import (
 	"../config"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
@@ -29,11 +28,10 @@ func RunReflectArgsFunc(obj interface{}, funcName string, args ...interface{}) [
 }
 
 var (
-	pluginMap = make(map[string]*plugin.Plugin)
-	funcMap   = make(map[string]interface{})
+	funcMap map[string]interface{}
 )
 
-func InitPlugins(opt *config.MinionOptions) {
+func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 	base := filepath.Join(opt.BaseDir, "oms_agent/modules")
 	files, err := ioutil.ReadDir(base)
 	if !CheckError(err) {
@@ -56,38 +54,23 @@ func InitPlugins(opt *config.MinionOptions) {
 					soFilePath, goFilePath)
 				out, err := cmd.CombinedOutput()
 				if !CheckError(err) {
-					pluginMap[fileName] = plug
+					for _, fname := range opt.RegisterFunc[fileName] {
+						symbol, err := plug.Lookup(fname)
+						if !CheckError(err) {
+							val := reflect.ValueOf(symbol).Elem()
+							funcs := val.Interface().([]string)
+							for _, f := range funcs {
+								function, _ := plug.Lookup(f)
+								fn := strings.Split(pluginFile, ".")
+								funcMap[fn[0]+"."+strings.ToLower(f)] = function
+							}
+						}
+					}
 				} else {
 					log.Error(string(out))
 				}
 			}
 		}
 	}
-	//return funcMap
-}
-
-func LoadFunc(funcName string) interface{} {
-	defer func() {
-		fmt.Println("c")
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println("d")
-	}()
-	a := strings.Split(funcName, ".")
-	if _, exist := funcMap[funcName]; !exist {
-
-		for _, plugin := range pluginMap {
-
-			function, err := plugin.Lookup(a[1])
-			if !CheckError(err) {
-				if function != nil {
-					funcMap[funcName] = function
-					break
-				}
-
-			}
-		}
-	}
-	return funcMap[funcName]
+	return funcMap
 }
