@@ -44,7 +44,8 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 		for _, f := range files {
 			fileName := f.Name()
 			if strings.HasSuffix(fileName, ".go") {
-				pluginFile := strings.Replace(fileName, ".go", ".so", 1)
+				name := strings.Split(fileName, ".")[0]
+				pluginFile := name + ".so"
 
 				goFilePath := filepath.Join(base, fileName)
 				soFilePath := filepath.Join(base, pluginFile)
@@ -54,7 +55,7 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 					soFilePath, goFilePath)
 				out, err := cmd.CombinedOutput()
 				if !CheckError(err) {
-					for _, fname := range opt.RegisterFunc[fileName] {
+					for _, fname := range opt.RegisterFunc[name] {
 						symbol, err := plug.Lookup(fname)
 						if !CheckError(err) {
 							val := reflect.ValueOf(symbol).Elem()
