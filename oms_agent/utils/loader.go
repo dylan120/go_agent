@@ -64,7 +64,7 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 							}
 						}
 					} else {
-						log.Error(string(out))
+						log.Error(err)
 					}
 				}
 
