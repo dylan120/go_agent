@@ -88,7 +88,7 @@ func checkJobStatus(
 			break
 		}
 		step := utils.Step{
-			Function:    "job.checkAlive",
+			Function:    "job.checkalive",
 			IsFinished:  false,
 			BlockName:   "CheckAlive",
 			Creator:     "agent",
