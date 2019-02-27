@@ -20,7 +20,7 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		text    string
 	)
 
-	path := filepath.Join(procDir, step.InstanceID)
+	path := filepath.Join(procDir, step.ScriptParam)
 	content, err := ioutil.ReadFile(path)
 	if !utils.CheckError(err) {
 		err := json.Unmarshal(content, &info)
