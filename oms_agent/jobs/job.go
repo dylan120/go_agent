@@ -8,17 +8,18 @@ import (
 	"encoding/json"
 	"fmt"
 	zmq "github.com/pebbe/zmq4"
+	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
-func subscribeEvent(opts *config.MasterOptions, prefix string) <-chan utils.Event {
+func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan utils.Event, timeoutAt int64) {
 	var (
-		eventChan = make(chan utils.Event)
-		err       error
-		event     utils.Event
+		//eventChan = make(chan utils.Event)
+		err   error
+		event utils.Event
 	)
 	context, _ := zmq.NewContext()
 	defer context.Term()
@@ -26,11 +27,15 @@ func subscribeEvent(opts *config.MasterOptions, prefix string) <-chan utils.Even
 	defer repSock.Close()
 	repSock.Connect("ipc://" + filepath.Join(opts.SockDir, "dealer.ipc"))
 	for {
-		load := utils.Load{}
+		if time.Now().Unix() > timeoutAt {
+			close(eventChan)
+			break
+		}
 		msg, _ := repSock.RecvBytes(0)
+		load := utils.Load{}
 		payLoad := utils.Payload{}
-		err = utils.UnPackPayload(msg, &payLoad)
 
+		err = utils.UnPackPayload(msg, &payLoad)
 		if err == nil {
 			err = json.Unmarshal(payLoad.Data, &load)
 			if !utils.CheckError(err) {
@@ -54,7 +59,6 @@ func cmdJob(step *utils.Step, server transport.ServerChannel) {
 		server.Publish(step.Minions, data)
 		log.Info("sent msg")
 	}
-
 }
 
 func fileJob(step *utils.Step, server transport.ServerChannel) {
@@ -65,54 +69,52 @@ func SqlJob(step *utils.Step, server transport.ServerChannel) {
 
 }
 
-func checkJobStatus(opts *config.MasterOptions, jid string, minions []string) bool {
+func checkJobStatus(
+	opts *config.MasterOptions, jid string,
+	server transport.ServerChannel, minions []string) bool {
 	var (
 		isSuccess = false
 		isBreak   = false
 		//children  []string
 	)
 	//timeout := time.Duration(opts.TimeOut) * time.Second
-	//timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
+	timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
 	//zkClient, jobPath, _ := transport.JobRegister(opts, jid)
 
 	for {
-		//if time.Now().Unix() > timeoutAt {
-		//	log.Errorf("minion time out %ds", opts.TimeOut)
-		//	break
-		//}
-		timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
-		select {
-		case event := <-subscribeEvent(opts, "/job"):
+		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
+		uuId, err := uuid.NewV4()
+		if utils.CheckError(err) {
+			break
+		}
+		step := utils.Step{
+			Function:    "job.CheckAlive",
+			IsFinished:  false,
+			BlockName:   "CheckAlive",
+			Creator:     "agent",
+			Type:        1,
+			ScriptParam: jid,
+			Name:        "CheckAlive",
+			IsPause:     false,
+			TimeOut:     opts.TimeOut,
+			Minions:     minions,
+			InstanceID:  uuId.String(),
+		}
+		data, err := json.Marshal(step)
+		if utils.CheckError(err) {
+			break
+		}
+		server.Publish(step.Minions, data)
+		log.Info("sent msg")
+		eventChan := make(chan utils.Event)
+		subscribeEvent(opts, "/job", eventChan, timeoutAt)
+		for event := range eventChan {
 			if event.Function == "job.CheckAlive" && event.Params == jid {
-				time.Sleep(100 * time.Millisecond)
+				//time.Sleep(100 * time.Millisecond)
 				//timeout = time.After(time.Duration(opts.TimeOut) * time.Second)
 			}
-		case <-timeout:
-			log.Errorf("minion time out %ds", opts.TimeOut)
-			time.Sleep(100 * time.Millisecond)
-			isBreak = true
 		}
 
-		//_, _, eventChan, err := zkClient.ChildrenW(jobPath)
-		//if !utils.CheckError(err) {
-		//	isBreak = true
-		//	select {
-		//	case <-eventChan:
-		//		children, _, err = zkClient.Children(jobPath)
-		//		log.Debug(len(minions))
-		//		if !utils.CheckError(err) {
-		//			isBreak = true
-		//			if len(children) == len(minions) {
-		//				isBreak = true
-		//				isSuccess = true
-		//			}
-		//		}
-		//	case <-timeout:
-		//		log.Errorf("minion time out %ds", opts.TimeOut)
-		//		time.Sleep(100 * time.Millisecond)
-		//		isBreak = true
-		//	}
-		//}
 		if isBreak {
 			break
 		}
@@ -177,7 +179,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 			case utils.SqlType:
 				SqlJob(&step, server)
 			}
-			isSuccess := checkJobStatus(opts, jid, step.Minions)
+			isSuccess := checkJobStatus(opts, jid, server, step.Minions)
 			if isSuccess {
 				if step.IsPause {
 					status = utils.Stop
