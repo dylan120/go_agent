@@ -168,7 +168,7 @@ func (reqServer *ZMQReqServerChannel) PostFork(i int, handlePayLoad func(*config
 	repSock.Connect("ipc://" + filepath.Join(reqServer.Opts.SockDir, "dealer.ipc"))
 	for {
 		recvMsg, _ := repSock.RecvBytes(0)
-		log.Debugf("[worker %d]Received request: [%s]\n", i, recvMsg)
+		//log.Debugf("[worker %d]Received request: [%s]\n", i, recvMsg)
 		out, _ := handlePayLoad(reqServer.Opts, recvMsg) //TODO can make this a async task ?
 		repSock.SendBytes(out, 0)
 	}
