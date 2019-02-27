@@ -109,7 +109,7 @@ func checkJobStatus(
 		eventChan := make(chan utils.Event)
 		subscribeEvent(opts, "/job", eventChan, timeoutAt)
 		for event := range eventChan {
-			if event.Function == "job.checkAlive" && event.Params == jid {
+			if event.Function == "job.checkalive" && event.Params == jid {
 				log.Info(event.Result)
 				isBreak = true
 			}
