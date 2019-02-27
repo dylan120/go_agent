@@ -111,6 +111,7 @@ func checkJobStatus(
 		for event := range eventChan {
 			if event.Function == "job.checkAlive" && event.Params == jid {
 				log.Info(event.Result)
+				isBreak = true
 			}
 		}
 
