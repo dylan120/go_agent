@@ -15,6 +15,8 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 	var (
 		info    utils.ProcessInfo
 		isAlive = false
+		retcode int
+		text    string
 	)
 
 	path := filepath.Join(procDir, step.InstanceID)
@@ -24,14 +26,17 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		if !utils.CheckError(err) {
 			_, err := os.FindProcess(info.ProcessID)
 			if err != nil {
-				resultChannel <- strconv.FormatBool(isAlive)
-				status.Set(defaults.Failure, fmt.Sprintf("jid %s does not exist", step.InstanceID), true)
+				text = fmt.Sprintf("jid %s does not exist", step.InstanceID)
+				retcode = defaults.Failure
 			} else {
 				isAlive = true
-				resultChannel <- strconv.FormatBool(isAlive)
-				status.Set(defaults.Success, fmt.Sprintf("jid %s alive", step.InstanceID), true)
+				text = fmt.Sprintf("jid %s alive", step.InstanceID)
+				retcode = defaults.Success
 			}
 		}
-	}
+	} else {
 
+	}
+	resultChannel <- strconv.FormatBool(isAlive)
+	status.Set(retcode, text, true)
 }
