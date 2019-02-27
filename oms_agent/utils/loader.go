@@ -50,21 +50,24 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 				goFilePath := filepath.Join(base, fileName)
 				soFilePath := filepath.Join(base, pluginFile)
 				plug, err := plugin.Open(soFilePath)
-				cmd := exec.Command(goRun,
-					"build", "--buildmode=plugin", "-o",
-					soFilePath, goFilePath)
-				out, err := cmd.CombinedOutput()
 				if !CheckError(err) {
-					for _, fname := range opt.RegisterFunc[name] {
-						if !CheckError(err) {
-							function, _ := plug.Lookup(fname)
-							fn := strings.Split(pluginFile, ".")
-							funcMap[fn[0]+"."+strings.ToLower(fname)] = function
+					cmd := exec.Command(goRun,
+						"build", "--buildmode=plugin", "-o",
+						soFilePath, goFilePath)
+					out, _ := cmd.CombinedOutput()
+					if err := cmd.Wait(); err == nil {
+						for _, fname := range opt.RegisterFunc[name] {
+							if !CheckError(err) {
+								function, _ := plug.Lookup(fname)
+								fn := strings.Split(pluginFile, ".")
+								funcMap[fn[0]+"."+strings.ToLower(fname)] = function
+							}
 						}
+					} else {
+						log.Error(string(out))
 					}
-				} else {
-					log.Error(string(out))
 				}
+
 			}
 		}
 	}
