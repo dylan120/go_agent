@@ -8,9 +8,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
-func CheckAlive(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) bool {
+func CheckAlive(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	var (
 		info    utils.ProcessInfo
 		isAlive = false
@@ -29,5 +30,5 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 			}
 		}
 	}
-	return isAlive
+	resultChannel <- strconv.FormatBool(isAlive)
 }

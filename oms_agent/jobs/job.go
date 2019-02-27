@@ -98,7 +98,7 @@ func checkJobStatus(
 			IsPause:     false,
 			TimeOut:     opts.TimeOut,
 			Minions:     minions,
-			InstanceID:  uuId.String(),
+			InstanceID:  fmt.Sprintf("%s_1_1", uuId.String()),
 		}
 		data, err := json.Marshal(step)
 		if utils.CheckError(err) {
@@ -109,9 +109,8 @@ func checkJobStatus(
 		eventChan := make(chan utils.Event)
 		subscribeEvent(opts, "/job", eventChan, timeoutAt)
 		for event := range eventChan {
-			if event.Function == "job.CheckAlive" && event.Params == jid {
-				//time.Sleep(100 * time.Millisecond)
-				//timeout = time.After(time.Duration(opts.TimeOut) * time.Second)
+			if event.Function == "job.checkAlive" && event.Params == jid {
+				log.Info(event.Result)
 			}
 		}
 
