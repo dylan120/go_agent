@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func writeProcInfo(procDir string, procInfo ProcessInfo) {
+func WriteProcInfo(procDir string, procInfo ProcessInfo) {
 	path := filepath.Join(procDir, procInfo.JID)
 
 	if _, err := os.Stat(procDir); os.IsNotExist(err) {
@@ -24,6 +24,7 @@ func writeProcInfo(procDir string, procInfo ProcessInfo) {
 	defer f.Close()
 	if !CheckError(err) {
 		data, err := json.Marshal(procInfo)
+		log.Debug(string(data))
 		if !CheckError(err) {
 			f.Write(data)
 		}
@@ -51,7 +52,7 @@ func IterJobResult(jid string, procDir string, scriptInterruptor string,
 		ProcessID: cmd.Process.Pid,
 		Cmd:       []string{scriptInterruptor, script, scriptParams},
 	}
-	writeProcInfo(procDir, info)
+	WriteProcInfo(procDir, info)
 
 	if !CheckError(err) {
 		go func() {

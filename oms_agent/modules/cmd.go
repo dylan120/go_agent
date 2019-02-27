@@ -3,14 +3,19 @@ package main
 import (
 	"../defaults"
 	"../utils"
+	"bufio"
 	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"syscall"
+	"time"
 )
 
 func getShell() string {
@@ -109,8 +114,69 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 		}
 		err = ioutil.WriteFile(scriptPath, []byte(scriptContent), 0500)
 		if !utils.CheckError(err) {
-			//run the script
-			utils.IterJobResult(jid, procDir, scriptInterruptor, scriptPath, scriptParam, timeOut, resultChannel, status)
+			nowTimestamp := time.Now().Unix()
+			timeOutAt := nowTimestamp + int64(timeOut)
+			cmd := exec.Command(scriptInterruptor, scriptPath, scriptParam)
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				//Pdeathsig: syscall.SIGTERM,
+				Setsid: true,
+			}
+
+			stdout, _ := cmd.StdoutPipe()
+			cmd.Stderr = cmd.Stdout
+			err := cmd.Start()
+			if !utils.CheckError(err) {
+				info := utils.ProcessInfo{
+					JID:       jid,
+					ProcessID: cmd.Process.Pid,
+					Cmd:       []string{scriptInterruptor, scriptPath, scriptParam},
+				}
+				utils.WriteProcInfo(procDir, info)
+				//utils.IterJobResult(jid, procDir, stdout, timeOut, resultChannel, status)
+
+				scanner := bufio.NewScanner(stdout)
+				lines := 0
+				results := ""
+				for scanner.Scan() {
+					if time.Now().Unix() > timeOutAt {
+						desc := fmt.Sprintf("job with id %s timeout with %d", jid, timeOut)
+						log.Warnf(desc)
+						cmd.Process.Signal(syscall.SIGTERM)
+						close(resultChannel)
+						status.Set(defaults.TimeOut, desc, true)
+						break
+					}
+					lines += 1
+					if results != "" {
+						results = fmt.Sprintf("%s\n%s", results, scanner.Text())
+					} else {
+						results = scanner.Text()
+					}
+
+					if lines == 50 { //TODO maybe having another better way to do this
+						status.Set(defaults.Run, "", false)
+						resultChannel <- results
+						time.Sleep(time.Duration(rand.Float64()) * time.Second)
+						lines = 0
+						results = ""
+					}
+				}
+
+				if err := cmd.Wait(); err != nil {
+					if exitErr, ok := err.(*exec.ExitError); ok {
+						if stat, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+							status.Set(stat.ExitStatus(), err.Error(), true)
+						}
+					} else {
+						status.Set(defaults.Failure, fmt.Sprintf("cmd wait: %v", err), true)
+					}
+				} else {
+					status.Set(defaults.Success, "", true)
+				}
+
+				log.Debugf("job with id %s done!", jid)
+
+			}
 		}
 
 	} else {

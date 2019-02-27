@@ -154,7 +154,6 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			seq += 1
 			if status.IsFinished == true || time.Now().Unix() > timeOutAt {
 				close(resultChannel)
-				//status.Set(defaults.TimeOut, fmt.Sprintf("job timeout with %d", step.TimeOut), true)
 				log.Debug(resultChannel == nil)
 			}
 		}
