@@ -53,7 +53,8 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 					cmd := exec.Command(goRun,
 						"build", "--buildmode=plugin", "-o",
 						soFilePath, goFilePath)
-					out, _ := cmd.CombinedOutput()
+					//cmd.CombinedOutput()
+					cmd.Start()
 					if err := cmd.Wait(); err == nil {
 						plug, err := plugin.Open(soFilePath)
 						for _, fname := range opt.RegisterFunc[name] {
