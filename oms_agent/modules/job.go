@@ -35,7 +35,8 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 			}
 		}
 	} else {
-
+		text = fmt.Sprintf("jid %s does not exist", step.InstanceID)
+		retcode = defaults.Failure
 	}
 	resultChannel <- strconv.FormatBool(isAlive)
 	status.Set(retcode, text, true)
