@@ -83,6 +83,9 @@ func checkJobStatus(
 
 	for {
 		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
+		if time.Now().Unix() > timeoutAt {
+			break
+		}
 		uuId, err := uuid.NewV4()
 		if utils.CheckError(err) {
 			break
@@ -112,6 +115,7 @@ func checkJobStatus(
 			if event.Function == "job.checkalive" && event.Params == jid {
 				log.Info(event.Result)
 				isBreak = true
+				break
 			}
 		}
 

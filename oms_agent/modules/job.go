@@ -27,16 +27,16 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		if !utils.CheckError(err) {
 			_, err := os.FindProcess(info.ProcessID)
 			if err != nil {
-				text = fmt.Sprintf("jid %s does not exist", step.InstanceID)
+				text = fmt.Sprintf("jid %s does not exist", step.ScriptParam)
 				retcode = defaults.Failure
 			} else {
 				isAlive = true
-				text = fmt.Sprintf("jid %s alive", step.InstanceID)
+				text = fmt.Sprintf("jid %s alive", step.ScriptParam)
 				retcode = defaults.Success
 			}
 		}
 	} else {
-		text = fmt.Sprintf("jid %s does not exist", step.InstanceID)
+		text = fmt.Sprintf("jid %s does not exist", step.ScriptParam)
 		retcode = defaults.Failure
 	}
 	msg := strconv.FormatBool(isAlive)
