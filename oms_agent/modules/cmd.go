@@ -160,6 +160,9 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 					}
 				}
 
+				if results != "" && !status.IsFinished {
+					resultChannel <- results
+				}
 				if err := cmd.Wait(); err != nil {
 					if exitErr, ok := err.(*exec.ExitError); ok {
 						if stat, ok := exitErr.Sys().(syscall.WaitStatus); ok {
