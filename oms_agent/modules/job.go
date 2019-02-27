@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 func CheckAlive(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
@@ -42,5 +43,6 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 	msg := strconv.FormatBool(isAlive)
 	log.Debug(msg)
 	resultChannel <- msg
+	time.Sleep(100 * time.Millisecond)
 	status.Set(retcode, text, true)
 }

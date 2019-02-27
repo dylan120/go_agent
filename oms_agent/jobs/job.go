@@ -179,6 +179,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 			case utils.SqlType:
 				SqlJob(&step, server)
 			}
+			time.Sleep(time.Second)
 			isSuccess := checkJobStatus(opts, jid, server, step.Minions)
 			if isSuccess {
 				if step.IsPause {
