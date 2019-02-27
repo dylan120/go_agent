@@ -139,6 +139,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 
 		seq := 0
 		for result := range resultChannel {
+			log.Debug(result)
 			tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
 			event := utils.Event{
 				Function: funcName,
