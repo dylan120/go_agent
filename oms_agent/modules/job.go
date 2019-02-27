@@ -24,11 +24,13 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		if !utils.CheckError(err) {
 			_, err := os.FindProcess(info.ProcessID)
 			if err != nil {
-				fmt.Printf("Failed to find process: %s\n", err)
+				status.Set(defaults.Failure, fmt.Sprintf("jid %s does not exist", step.InstanceID), true)
 			} else {
 				isAlive = true
+				status.Set(defaults.Success, fmt.Sprintf("jid %s alive", step.InstanceID), true)
 			}
 		}
 	}
 	resultChannel <- strconv.FormatBool(isAlive)
+
 }
