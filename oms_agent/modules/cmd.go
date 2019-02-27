@@ -78,7 +78,6 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 	d, _ := json.Marshal(&step)
 	log.Debug(string(d))
 	var (
-		//ch                chan *utils.Event
 		account, scriptSuffix,
 		scriptInterruptor, interruptorType string
 		err error = nil
@@ -152,7 +151,6 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 					} else {
 						results = scanner.Text()
 					}
-
 					if lines == 50 { //TODO maybe having another better way to do this
 						status.Set(defaults.Run, "", false)
 						resultChannel <- results
@@ -173,12 +171,10 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 				} else {
 					status.Set(defaults.Success, "", true)
 				}
-
 				log.Debugf("job with id %s done!", jid)
 
 			}
 		}
-
 	} else {
 		log.Errorf("user %s  is not available.", account)
 	}
