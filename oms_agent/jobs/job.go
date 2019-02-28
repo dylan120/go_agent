@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"../config"
+	"../defaults"
 	"../returners"
 	"../transport"
 	"../utils"
@@ -91,19 +92,24 @@ func checkJobStatus(
 		if utils.CheckError(err) {
 			break
 		}
-		step := utils.Step{
-			Function:    "job.checkalive",
-			IsFinished:  false,
-			BlockName:   "CheckAlive",
-			Creator:     "agent",
-			Type:        1,
-			ScriptParam: jid,
-			Name:        "CheckAlive",
-			IsPause:     false,
-			TimeOut:     opts.TimeOut,
-			Minions:     minions,
-			InstanceID:  fmt.Sprintf("%s_1_1", uuId.String()),
-		}
+		var (
+			step = utils.Step{
+				Function:    "job.checkalive",
+				IsFinished:  false,
+				BlockName:   "CheckAlive",
+				Creator:     "agent",
+				Type:        1,
+				ScriptParam: jid,
+				Name:        "CheckAlive",
+				IsPause:     false,
+				TimeOut:     opts.TimeOut,
+				Minions:     minions,
+				InstanceID:  fmt.Sprintf("%s_1_1", uuId.String()),
+			}
+			runningMinion = 0
+			doneMioion    = 0
+		)
+
 		data, err := json.Marshal(step)
 		if utils.CheckError(err) {
 			break
@@ -112,12 +118,20 @@ func checkJobStatus(
 		log.Info("sent msg")
 		eventChan := make(chan utils.Event)
 		go subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, timeoutAt)
+
 		for event := range eventChan {
 			log.Info(event)
 			if event.Function == "job.checkalive" && event.Params == jid {
-				log.Info(event.Result)
-				isBreak = true
-				break
+				if event.Retcode == defaults.Run {
+					runningMinion += 1
+					timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
+				} else {
+					doneMioion += 1
+				}
+				if doneMioion == len(minions) {
+					isBreak = true
+					break
+				}
 			}
 		}
 
@@ -172,7 +186,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 					Function: step.Function,
 					JID:      jid,
 					MinionId: mid,
-					Retcode:  utils.Wait,
+					Retcode:  defaults.Wait,
 					JobType:  step.Type,
 				})
 			}
