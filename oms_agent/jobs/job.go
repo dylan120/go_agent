@@ -185,6 +185,7 @@ func checkJobStatus(
 			if isBreak {
 				break
 			}
+			time.Sleep(2 * time.Second)
 		}
 	}
 	utils.CheckError(transport.JobDone(opts, jid))

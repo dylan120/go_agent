@@ -27,7 +27,7 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		err := json.Unmarshal(content, &info)
 		if !utils.CheckError(err) {
 			_, err := os.FindProcess(info.ProcessID)
-			if err != nil {
+			if !utils.CheckError(err) {
 				text = fmt.Sprintf("jid %s does not exist", step.ScriptParam)
 				retcode = defaults.Failure
 			} else {
