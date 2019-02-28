@@ -23,6 +23,10 @@ type PubServerChannel struct {
 	Opts *config.MasterOptions
 }
 
+type EventServerChannel struct {
+	Opts *config.MasterOptions
+}
+
 func NewReqServerChannel(opts *config.MasterOptions) ServerChannel {
 	if opts.Transport == "zeromq" {
 		return NewZMQReqServerChannel(opts)
@@ -37,10 +41,9 @@ func NewPubServerChannel(opts *config.MasterOptions) ServerChannel {
 	return nil
 }
 
-//func (reqServer *ReqServerChannel) Run() {
-//	output, err := exec.Command("F:\\Go\\oms_agent\\bin\\nsqd.exe --lookupd-tcp-address=127.0.0.1:4160").Output()
-//	if err != nil {
-//		fmt.Println(err.Error())
+//func NewEventServerChannel(opts *config.MasterOptions) ServerChannel {
+//	if opts.Transport == "zeromq" {
+//		return NewZMQEventServerChannel(opts)
 //	}
-//	fmt.Println(string(output))
+//	return nil
 //}

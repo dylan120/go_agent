@@ -28,7 +28,8 @@ type ZMQPubClientChannel struct {
 
 type ZMQReqServerChannel struct {
 	ReqServerChannel
-	closing bool
+	eventSock *zmq.Socket
+	closing   bool
 }
 
 type ZMQPubServerChannel struct {
@@ -37,6 +38,11 @@ type ZMQPubServerChannel struct {
 	//redis   *redis.Client
 	closing bool
 }
+
+//type ZMQEventServerChannel struct {
+//	EventServerChannel
+//	eventSock *zmq.Socket
+//}
 
 func SetBit(b bool) int {
 	var bitSetVar int
@@ -124,8 +130,8 @@ func setTcpKeepalive(zmqSock *zmq.Socket, opts *config.MasterOptions) {
 
 func NewZMQReqServerChannel(opts *config.MasterOptions) *ZMQReqServerChannel {
 	return &ZMQReqServerChannel{
-		ReqServerChannel{opts},
-		false,
+		ReqServerChannel: ReqServerChannel{opts},
+		closing:          false,
 	}
 }
 
@@ -135,8 +141,13 @@ func NewZMQPubServerChannel(opts *config.MasterOptions) *ZMQPubServerChannel {
 		//redis:            client,
 		closing: false,
 	}
-
 }
+
+//func NewZMQEventServerChannel(opts *config.MasterOptions) *ZMQEventServerChannel {
+//	return &ZMQEventServerChannel{
+//		EventServerChannel: EventServerChannel{opts},
+//	}
+//}
 
 func (reqServer *ZMQReqServerChannel) PreFork() {
 	context, _ := zmq.NewContext()
@@ -154,6 +165,17 @@ func (reqServer *ZMQReqServerChannel) PreFork() {
 		os.Mkdir(reqServer.Opts.SockDir, os.ModePerm) //TODO
 	}
 	dealer.Bind("ipc://" + filepath.Join(reqServer.Opts.SockDir, "dealer.ipc"))
+
+	context2, _ := zmq.NewContext()
+	defer context2.Term()
+	reqServer.eventSock, _ = context.NewSocket(zmq.PUB)
+	defer reqServer.eventSock.Close()
+	setTcpKeepalive(reqServer.eventSock, reqServer.Opts)
+	reqServer.eventSock.SetRcvhwm(1000) //TODO
+	reqServer.eventSock.SetSndhwm(1000)
+	pubUri := "ipc://" + filepath.Join(reqServer.Opts.SockDir, "event_publish.ipc")
+	reqServer.eventSock.Bind(pubUri)
+
 	log.Info("start request server...")
 	zmq.Proxy(router, dealer, nil)
 }
@@ -168,6 +190,7 @@ func (reqServer *ZMQReqServerChannel) PostFork(i int, handlePayLoad func(*config
 	repSock.Connect("ipc://" + filepath.Join(reqServer.Opts.SockDir, "dealer.ipc"))
 	for {
 		recvMsg, _ := repSock.RecvBytes(0)
+		reqServer.eventSock.SendBytes(recvMsg, 0)
 		//log.Debugf("[worker %d]Received request: [%s]\n", i, recvMsg)
 		out, _ := handlePayLoad(reqServer.Opts, recvMsg) //TODO can make this a async task ?
 		repSock.SendBytes(out, 0)
@@ -192,10 +215,10 @@ func (pubServer *ZMQPubServerChannel) PreFork() {
 	//}
 	pubServer.pubSock.Bind(pubUri)
 
-	pullSock, _ := context.NewSocket(zmq.PULL)
-	defer pullSock.Close()
-	pullUri := "ipc://" + filepath.Join(pubServer.Opts.SockDir, "publish_pull.ipc")
-	pullSock.Bind(pullUri)
+	//pullSock, _ := context.NewSocket(zmq.PULL)
+	//defer pullSock.Close()
+	//pullUri := "ipc://" + filepath.Join(pubServer.Opts.SockDir, "publish_pull.ipc")
+	//pullSock.Bind(pullUri)
 	for {
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -213,6 +236,21 @@ func (pubServer *ZMQPubServerChannel) Publish(target []string, data []byte) {
 	utils.CheckError(err)
 	log.Info("sent msg")
 }
+
+//func (eventServer *ZMQEventServerChannel) PreFork() {
+//	context, _ := zmq.NewContext()
+//	defer context.Term()
+//	eventServer.eventSock, _ = context.NewSocket(zmq.PUB)
+//	defer eventServer.eventSock.Close()
+//	setTcpKeepalive(eventServer.eventSock, eventServer.Opts)
+//	eventServer.eventSock.SetRcvhwm(1000) //TODO
+//	eventServer.eventSock.SetSndhwm(1000)
+//	pubUri := "ipc://" + filepath.Join(eventServer.Opts.SockDir, "event_publish.ipc")
+//	eventServer.eventSock.Bind(pubUri)
+//	for {
+//		time.Sleep(100 * time.Millisecond)
+//	}
+//}
 
 func socketMonitor(addr string) {
 	log.Info("create socket monitor...")

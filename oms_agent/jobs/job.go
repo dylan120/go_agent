@@ -23,15 +23,15 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 	)
 	context, _ := zmq.NewContext()
 	defer context.Term()
-	repSock, _ := context.NewSocket(zmq.REP)
-	defer repSock.Close()
-	repSock.Connect("ipc://" + filepath.Join(opts.SockDir, "dealer.ipc"))
+	eventSubSock, _ := context.NewSocket(zmq.SUB)
+	defer eventSubSock.Close()
+	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
 	for {
 		if time.Now().Unix() > timeoutAt {
 			close(eventChan)
 			break
 		}
-		msg, _ := repSock.RecvBytes(0)
+		msg, _ := eventSubSock.RecvBytes(0)
 		load := utils.Load{}
 		payLoad := utils.Payload{}
 
