@@ -125,13 +125,13 @@ func checkJobStatus(
 				if event.Retcode == defaults.Run || event.Retcode == defaults.Success {
 					runningMinion += 1
 					timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
-					log.Debug("job %s is still running!", jid)
+					log.Debugf("job %s is still running!", jid)
 
 				} else if event.Retcode == defaults.Failure {
 					doneMioion += 1
 				}
 				if doneMioion == len(minions) {
-					log.Debug("job %s in all minion done!", jid)
+					log.Debugf("job %s in all minion done!", jid)
 					isBreak = true
 					break
 				}
