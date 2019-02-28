@@ -26,6 +26,7 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 	eventSubSock, _ := context.NewSocket(zmq.SUB)
 	defer eventSubSock.Close()
 	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
+	eventSubSock.SetSubscribe("")
 	for {
 		if time.Now().Unix() > timeoutAt {
 			close(eventChan)
