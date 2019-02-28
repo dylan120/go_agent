@@ -122,10 +122,11 @@ func checkJobStatus(
 		for event := range eventChan {
 			log.Info(event)
 			if event.Function == "job.checkalive" && event.Params == jid {
-				if event.Retcode == defaults.Run {
+				if event.Retcode == defaults.Run || event.Retcode == defaults.Success {
 					runningMinion += 1
 					timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
-				} else {
+
+				} else if event.Retcode == defaults.Failure {
 					doneMioion += 1
 				}
 				if doneMioion == len(minions) {
