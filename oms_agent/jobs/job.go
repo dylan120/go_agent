@@ -141,6 +141,7 @@ func checkJobStatus(
 				//close(eventChan)
 				break
 			}
+			log.Debug("xxxxxx")
 			msg, _ := eventSubSock.RecvBytes(0)
 			event := utils.Event{}
 			load := utils.Load{}
