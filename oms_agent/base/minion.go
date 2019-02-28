@@ -138,25 +138,48 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			step, minion.Opts.ProcDir, resultChannel, status)
 
 		seq := 0
-		for result := range resultChannel {
-			log.Debug(result)
-			tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
-			event := utils.Event{
-				Function: funcName,
-				Params:   step.ScriptParam,
-				Tag:      tag,
-				MinionId: minion.Opts.ID,
-				JID:      step.InstanceID,
-				Result:   result,
-				Retcode:  defaults.Run,
-			}
-			minion.fireEvent(tag, &event)
-			seq += 1
-			if status.IsFinished == true || time.Now().Unix() > timeOutAt {
-				close(resultChannel)
-				log.Debug(resultChannel == nil)
+		for {
+			select {
+			case result := <-resultChannel:
+				log.Debug(result)
+				tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
+				event := utils.Event{
+					Function: funcName,
+					Params:   step.ScriptParam,
+					Tag:      tag,
+					MinionId: minion.Opts.ID,
+					JID:      step.InstanceID,
+					Result:   result,
+					Retcode:  defaults.Run,
+				}
+				minion.fireEvent(tag, &event)
+				seq += 1
+			default:
+				if status.IsFinished == true || time.Now().Unix() > timeOutAt {
+					close(resultChannel)
+					log.Debug(resultChannel == nil)
+				}
 			}
 		}
+		//for result := range resultChannel {
+		//	log.Debug(result)
+		//	tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
+		//	event := utils.Event{
+		//		Function: funcName,
+		//		Params:   step.ScriptParam,
+		//		Tag:      tag,
+		//		MinionId: minion.Opts.ID,
+		//		JID:      step.InstanceID,
+		//		Result:   result,
+		//		Retcode:  defaults.Run,
+		//	}
+		//	minion.fireEvent(tag, &event)
+		//	seq += 1
+		//	if status.IsFinished == true || time.Now().Unix() > timeOutAt {
+		//		close(resultChannel)
+		//		log.Debug(resultChannel == nil)
+		//	}
+		//}
 
 		tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
 		event := utils.Event{
