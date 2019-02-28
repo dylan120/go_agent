@@ -40,6 +40,8 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 		if err == nil {
 			err = json.Unmarshal(payLoad.Data, &load)
 			if !utils.CheckError(err) {
+				log.Debug(event.Tag)
+				log.Debug(prefix)
 				if strings.HasPrefix(event.Tag, prefix) {
 					err = json.Unmarshal(load.Data, &event)
 					if !utils.CheckError(err) {
