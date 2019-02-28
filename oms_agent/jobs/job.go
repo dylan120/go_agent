@@ -18,8 +18,7 @@ import (
 func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan utils.Event, timeoutAt int64) {
 	var (
 		//eventChan = make(chan utils.Event)
-		err   error
-		event utils.Event
+		err error
 	)
 	context, _ := zmq.NewContext()
 	defer context.Term()
@@ -33,6 +32,7 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 			break
 		}
 		msg, _ := eventSubSock.RecvBytes(0)
+		event := utils.Event{}
 		load := utils.Load{}
 		payLoad := utils.Payload{}
 
@@ -40,17 +40,16 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 		if err == nil {
 			err = json.Unmarshal(payLoad.Data, &load)
 			if !utils.CheckError(err) {
-				log.Debug(event.Tag)
-				log.Debug(prefix)
-				if strings.HasPrefix(event.Tag, prefix) {
-					err = json.Unmarshal(load.Data, &event)
-					if !utils.CheckError(err) {
+				err = json.Unmarshal(load.Data, &event)
+				if !utils.CheckError(err) {
+					log.Debug(event.Tag)
+					log.Debug(prefix)
+					if strings.HasPrefix(event.Tag, prefix) {
 						log.Debugf("receive event data: %s", event)
-						if strings.HasPrefix(event.Tag, "/job") {
-							eventChan <- event
-						}
+						eventChan <- event
 					}
 				}
+
 			}
 		}
 	}
