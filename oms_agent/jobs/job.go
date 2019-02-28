@@ -120,12 +120,6 @@ func checkJobStatus(
 			doneMioion    = 0
 		)
 
-		data, err := json.Marshal(step)
-		if utils.CheckError(err) {
-			break
-		}
-		server.Publish(step.Minions, data)
-		log.Info("sent msg")
 		//eventChan := make(chan utils.Event)
 		//stopChan := make(chan bool)
 		//subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
@@ -135,6 +129,13 @@ func checkJobStatus(
 		defer eventSubSock.Close()
 		eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
 		eventSubSock.SetSubscribe("")
+
+		data, err := json.Marshal(step)
+		if utils.CheckError(err) {
+			break
+		}
+		server.Publish(step.Minions, data)
+		log.Info("sent msg")
 
 		for {
 			if time.Now().Unix() > timeoutAt {
