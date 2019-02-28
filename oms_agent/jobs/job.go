@@ -183,11 +183,12 @@ func checkJobStatus(
 			}
 		}
 		if isBreak {
+			log.Debug("stop check minions alive")
 			break
 		}
 		time.Sleep(2 * time.Second)
 	}
-	utils.CheckError(transport.JobDone(opts, jid))
+	//utils.CheckError(transport.JobDone(opts, jid))
 	return isSuccess
 }
 
