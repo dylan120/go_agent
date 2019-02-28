@@ -49,7 +49,6 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 						eventChan <- event
 					}
 				}
-
 			}
 		}
 	}
