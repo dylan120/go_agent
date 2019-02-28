@@ -111,7 +111,7 @@ func checkJobStatus(
 		server.Publish(step.Minions, data)
 		log.Info("sent msg")
 		eventChan := make(chan utils.Event)
-		subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, timeoutAt)
+		go subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, timeoutAt)
 		for event := range eventChan {
 			log.Info(event)
 			if event.Function == "job.checkalive" && event.Params == jid {
