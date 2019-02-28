@@ -157,7 +157,7 @@ func checkJobStatus(
 						if strings.HasPrefix(event.Tag, prefix) {
 							log.Debugf("receive event data: %s", event)
 							if event.Function == "job.checkalive" && event.Params == jid {
-								if event.Retcode == defaults.Run || event.Retcode == defaults.Success {
+								if event.Retcode == defaults.Success {
 									runningMinion += 1
 									timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
 									log.Debugf("job %s is still running!", jid)
