@@ -138,7 +138,11 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			step, minion.Opts.ProcDir, resultChannel, status)
 
 		seq := 0
+		isBreak := false
 		for {
+			if isBreak {
+				break
+			}
 			select {
 			case result := <-resultChannel:
 				log.Debug(result)
@@ -158,6 +162,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 				if status.IsFinished == true || time.Now().Unix() > timeOutAt {
 					close(resultChannel)
 					log.Debug(resultChannel == nil)
+					isBreak = true
 				}
 			}
 		}
