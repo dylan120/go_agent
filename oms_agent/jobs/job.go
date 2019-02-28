@@ -127,7 +127,7 @@ func checkJobStatus(
 		log.Info("sent msg")
 		eventChan := make(chan utils.Event)
 		stopChan := make(chan bool)
-		go subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
+		subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
 
 		for event := range eventChan {
 			log.Info(event)
