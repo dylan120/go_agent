@@ -115,6 +115,7 @@ func checkJobStatus(
 				Minions:     minions,
 				InstanceID:  fmt.Sprintf("%s_1_1", uuId.String()),
 			}
+			prefix        = "/job/" + step.InstanceID
 			runningMinion = 0
 			doneMioion    = 0
 		)
@@ -125,37 +126,65 @@ func checkJobStatus(
 		}
 		server.Publish(step.Minions, data)
 		log.Info("sent msg")
-		eventChan := make(chan utils.Event)
-		stopChan := make(chan bool)
-		subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
+		//eventChan := make(chan utils.Event)
+		//stopChan := make(chan bool)
+		//subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
+		context, _ := zmq.NewContext()
+		defer context.Term()
+		eventSubSock, _ := context.NewSocket(zmq.SUB)
+		defer eventSubSock.Close()
+		eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
+		eventSubSock.SetSubscribe("")
 
-		for event := range eventChan {
-			log.Info(event)
-			if event.Function == "job.checkalive" && event.Params == jid {
-				if event.Retcode == defaults.Run || event.Retcode == defaults.Success {
-					runningMinion += 1
-					timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
-					log.Debugf("job %s is still running!", jid)
+		for {
+			if time.Now().Unix() > timeoutAt {
+				//close(eventChan)
+				break
+			}
+			msg, _ := eventSubSock.RecvBytes(0)
+			event := utils.Event{}
+			load := utils.Load{}
+			payLoad := utils.Payload{}
 
-				} else if event.Retcode == defaults.Failure {
-					doneMioion += 1
-				}
+			err = utils.UnPackPayload(msg, &payLoad)
+			if err == nil {
+				err = json.Unmarshal(payLoad.Data, &load)
+				if !utils.CheckError(err) {
+					err = json.Unmarshal(load.Data, &event)
+					if !utils.CheckError(err) {
+						log.Debug(event.Tag)
+						if strings.HasPrefix(event.Tag, prefix) {
+							log.Debugf("receive event data: %s", event)
+							if event.Function == "job.checkalive" && event.Params == jid {
+								if event.Retcode == defaults.Run || event.Retcode == defaults.Success {
+									runningMinion += 1
+									timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
+									log.Debugf("job %s is still running!", jid)
 
-				if runningMinion == len(minions) {
-					stopChan <- true
-					break
-				}
+								} else if event.Retcode == defaults.Failure {
+									doneMioion += 1
+								}
 
-				if doneMioion == len(minions) {
-					log.Debugf("job %s in all minion done!", jid)
-					isBreak = true
-					break
+								if runningMinion == len(minions) {
+									//stopChan <- true
+									break
+								}
+
+								if doneMioion == len(minions) {
+									log.Debugf("job %s in all minion done!", jid)
+									isBreak = true
+									break
+								}
+
+							}
+						}
+					}
 				}
 			}
-		}
 
-		if isBreak {
-			break
+			if isBreak {
+				break
+			}
 		}
 	}
 	utils.CheckError(transport.JobDone(opts, jid))
