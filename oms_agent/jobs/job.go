@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan utils.Event, timeoutAt int64) {
+func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan utils.Event, stopChan chan bool, timeoutAt int64) {
 	var (
 		//eventChan = make(chan utils.Event)
 		err error
@@ -27,32 +27,40 @@ func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan ut
 	defer eventSubSock.Close()
 	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
 	eventSubSock.SetSubscribe("")
-	for {
-		if time.Now().Unix() > timeoutAt {
-			close(eventChan)
-			break
-		}
-		msg, _ := eventSubSock.RecvBytes(0)
-		event := utils.Event{}
-		load := utils.Load{}
-		payLoad := utils.Payload{}
+	go func() {
+		for {
+			select {
+			case <-stopChan:
+				break
+			default:
 
-		err = utils.UnPackPayload(msg, &payLoad)
-		if err == nil {
-			err = json.Unmarshal(payLoad.Data, &load)
-			if !utils.CheckError(err) {
-				err = json.Unmarshal(load.Data, &event)
+			}
+			if time.Now().Unix() > timeoutAt {
+				close(eventChan)
+				break
+			}
+			msg, _ := eventSubSock.RecvBytes(0)
+			event := utils.Event{}
+			load := utils.Load{}
+			payLoad := utils.Payload{}
+
+			err = utils.UnPackPayload(msg, &payLoad)
+			if err == nil {
+				err = json.Unmarshal(payLoad.Data, &load)
 				if !utils.CheckError(err) {
-					log.Debug(event.Tag)
-					log.Debug(prefix)
-					if strings.HasPrefix(event.Tag, prefix) {
-						log.Debugf("receive event data: %s", event)
-						eventChan <- event
+					err = json.Unmarshal(load.Data, &event)
+					if !utils.CheckError(err) {
+						log.Debug(event.Tag)
+						log.Debug(prefix)
+						if strings.HasPrefix(event.Tag, prefix) {
+							log.Debugf("receive event data: %s", event)
+							eventChan <- event
+						}
 					}
 				}
 			}
 		}
-	}
+	}()
 }
 
 func cmdJob(step *utils.Step, server transport.ServerChannel) {
@@ -86,6 +94,7 @@ func checkJobStatus(
 	for {
 		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
 		if time.Now().Unix() > timeoutAt {
+			log.Debugf("jid %s timeout %d", jid, opts.TimeOut)
 			break
 		}
 		uuId, err := uuid.NewV4()
@@ -117,7 +126,8 @@ func checkJobStatus(
 		server.Publish(step.Minions, data)
 		log.Info("sent msg")
 		eventChan := make(chan utils.Event)
-		go subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, timeoutAt)
+		stopChan := make(chan bool)
+		go subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
 
 		for event := range eventChan {
 			log.Info(event)
@@ -130,6 +140,12 @@ func checkJobStatus(
 				} else if event.Retcode == defaults.Failure {
 					doneMioion += 1
 				}
+
+				if runningMinion == len(minions) {
+					stopChan <- true
+					break
+				}
+
 				if doneMioion == len(minions) {
 					log.Debugf("job %s in all minion done!", jid)
 					isBreak = true
