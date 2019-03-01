@@ -148,13 +148,14 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 				log.Debug(result)
 				tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
 				event := utils.Event{
-					Function: funcName,
-					Params:   step.ScriptParam,
-					Tag:      tag,
-					MinionId: minion.Opts.ID,
-					JID:      step.InstanceID,
-					Result:   result,
-					Retcode:  defaults.Run,
+					Function:  funcName,
+					Params:    step.ScriptParam,
+					Tag:       tag,
+					StartTime: nowTimestamp,
+					MinionId:  minion.Opts.ID,
+					JID:       step.InstanceID,
+					Result:    result,
+					Retcode:   defaults.Run,
 				}
 				minion.fireEvent(tag, &event)
 				seq += 1
@@ -165,34 +166,17 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 				}
 			}
 		}
-		//for result := range resultChannel {
-		//	log.Debug(result)
-		//	tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
-		//	event := utils.Event{
-		//		Function: funcName,
-		//		Params:   step.ScriptParam,
-		//		Tag:      tag,
-		//		MinionId: minion.Opts.ID,
-		//		JID:      step.InstanceID,
-		//		Result:   result,
-		//		Retcode:  defaults.Run,
-		//	}
-		//	minion.fireEvent(tag, &event)
-		//	seq += 1
-		//	if status.IsFinished == true || time.Now().Unix() > timeOutAt {
-		//		close(resultChannel)
-		//		log.Debug(resultChannel == nil)
-		//	}
-		//}
 
 		tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
 		event := utils.Event{
-			Function: funcName,
-			Params:   step.ScriptParam,
-			Tag:      tag,
-			MinionId: minion.Opts.ID,
-			JID:      step.InstanceID,
-			Retcode:  status.Code,
+			Function:  funcName,
+			Params:    step.ScriptParam,
+			Tag:       tag,
+			MinionId:  minion.Opts.ID,
+			JID:       step.InstanceID,
+			Retcode:   status.Code,
+			StartTime: nowTimestamp,
+			EndTime:   time.Now().Unix(),
 		}
 		if status.Code != defaults.Success {
 			event.Result = status.Desc

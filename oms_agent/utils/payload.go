@@ -67,9 +67,9 @@ type Event struct {
 	Retcode       int    `json:"retcode"`
 	Result        string `json:"result"`
 	JobType       int    `json:"job_type"`
-	StartTime     int    `json:"start_time"`
-	EndTime       int    `json:"end_time"`
-	TimeConsuming int    `json:"time_consuming"`
+	StartTime     int64  `json:"start_time"`
+	EndTime       int64  `json:"end_time"`
+	TimeConsuming int64  `json:"time_consuming"`
 }
 
 type Load struct {
