@@ -42,6 +42,13 @@ func checkJobAlive(
 	//timeout := time.Duration(opts.TimeOut) * time.Second
 	timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
 
+	context, _ := zmq.NewContext()
+	defer context.Term()
+	eventSubSock, _ := context.NewSocket(zmq.SUB)
+	defer eventSubSock.Close()
+	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
+	eventSubSock.SetSubscribe("")
+
 	for {
 		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
 		if time.Now().Unix() > timeoutAt {
@@ -71,13 +78,6 @@ func checkJobAlive(
 			doneMioion    = 0
 		)
 
-		context, _ := zmq.NewContext()
-		defer context.Term()
-		eventSubSock, _ := context.NewSocket(zmq.SUB)
-		defer eventSubSock.Close()
-		eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
-		eventSubSock.SetSubscribe("")
-
 		data, err := json.Marshal(step)
 		if utils.CheckError(err) {
 			break
@@ -89,7 +89,7 @@ func checkJobAlive(
 			if time.Now().Unix() > timeoutAt {
 				break
 			}
-			msg, err := eventSubSock.RecvBytes(zmq.DONTWAIT)
+			msg, err := eventSubSock.RecvBytes(0)
 			if !utils.CheckError(err) {
 				event := utils.Event{}
 				load := utils.Load{}
