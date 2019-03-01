@@ -46,7 +46,7 @@ func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 				event := utils.Event{}
 				err = json.Unmarshal(load.Data, &event)
 				if !utils.CheckError(err) {
-					log.Debugf("receive event data: %s", event)
+					log.Debugf("receive event data: %s", load.Data)
 					if strings.HasPrefix(event.Tag, "/job") {
 						returners.UpdateMinion(opts, []*utils.Event{&event}, true)
 					}
