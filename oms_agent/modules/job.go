@@ -15,7 +15,7 @@ import (
 func CheckAlive(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	var (
 		info    utils.ProcessInfo
-		retcode int32
+		retcode int
 		text    string
 	)
 

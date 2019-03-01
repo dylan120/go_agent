@@ -156,7 +156,7 @@ func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
 		isSuccess = true
 	)
 	db := MongoConnect(opts)
-	collection := db.Database(opts.Returner.Mongo.DB).Collection("step_record")
+	collection := db.Database(opts.Returner.Mongo.DB).Collection("minion_result")
 	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 	cursor, err := collection.Aggregate(ctx,
 		[]bson.M{
@@ -171,7 +171,7 @@ func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
 			cursor.Decode(&doc)
 			log.Debug(doc)
 			retcode := doc.Lookup("retcode").Int32()
-			if retcode != int32(defaults.Success) {
+			if retcode != defaults.Success {
 				isSuccess = true
 			}
 		}
