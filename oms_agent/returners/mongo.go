@@ -139,8 +139,6 @@ func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool
 			doc = doc.Append("end_time",
 				bsonx.Int32(int32(event.EndTime))).Append("time_consuming",
 				bsonx.Int32(int32(event.EndTime-event.EndTime)))
-
-			log.Debug(doc)
 			doc.Set("result",
 				bsonx.String(fmt.Sprintf("%v%s", doc.LookupElement("result").Value, event.Result)))
 			_, err = collection.UpdateOne(ctx,
@@ -169,7 +167,6 @@ func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
 		for cursor.Next(ctx) {
 			doc := bsonx.Doc{}
 			cursor.Decode(&doc)
-			log.Debug(doc)
 			retcode := doc.Lookup("retcode").Int32()
 			if retcode != int32(defaults.Success) {
 				isSuccess = false
