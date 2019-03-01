@@ -161,7 +161,6 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			default:
 				if status.IsFinished == true || time.Now().Unix() > timeOutAt {
 					close(resultChannel)
-					log.Debug(resultChannel == nil)
 					isBreak = true
 				}
 			}
@@ -196,7 +195,6 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			Retcode:  status.Code,
 		}
 		if status.Code != defaults.Success {
-			log.Error(status.Desc)
 			event.Result = status.Desc
 		} else {
 			log.Debugf("job %s exit with code %d", step.Function, status.Code)
