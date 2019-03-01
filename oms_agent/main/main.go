@@ -24,6 +24,9 @@ func initLog(debugLevel bool) {
 		FullTimestamp:   true,
 		TimestampFormat: time.RFC822,
 		ForceColors:     true,
+		FieldMap: log.FieldMap{
+			log.FieldKeyFile: "@file",
+		},
 	}
 
 	log.SetReportCaller(true)
