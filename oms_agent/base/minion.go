@@ -104,6 +104,8 @@ func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
 				}
 
 			}
+		} else {
+			log.Error("errrrr")
 		}
 	}
 }
