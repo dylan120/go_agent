@@ -84,20 +84,25 @@ func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
 		if !utils.CheckError(err) {
 			if payload.Crypt == "crypt" {
 				clearLoad, err := utils.AESDecrypt(payload.Data)
-				err = json.Unmarshal(clearLoad, &load)
 				if !utils.CheckError(err) {
-					err = json.Unmarshal(load.Data, &step)
+					err = json.Unmarshal(clearLoad, &load)
 					if !utils.CheckError(err) {
-						if err == nil {
-							if minion.CheckPayload(&load) {
-								log.Infof("receive job with id %s : %s", step.InstanceID, step.Function)
-								go minion.doTask(step.Function, step)
+						err = json.Unmarshal(load.Data, &step)
+						if !utils.CheckError(err) {
+							if err == nil {
+								if minion.CheckPayload(&load) {
+									log.Infof("receive job with id %s : %s", step.InstanceID, step.Function)
+									go minion.doTask(step.Function, step)
+								}
+							} else {
+								log.Errorf("receive unexpected data structure")
 							}
-						} else {
-							log.Errorf("receive unexpected data structure")
 						}
 					}
+				} else {
+					log.Error("decrypt data failed")
 				}
+
 			}
 		}
 	}
