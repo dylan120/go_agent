@@ -149,3 +149,25 @@ func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool
 		}
 	}
 }
+
+func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
+	var (
+		isSuccess = false
+	)
+	db := MongoConnect(opts)
+	collection := db.Database(opts.Returner.Mongo.DB).Collection("step_record")
+	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+	_, err := collection.UpdateMany(ctx,
+		bson.M{"jid": jid},
+		bson.D{{"$set",
+			bson.M{
+				"task_instance_id": taskInstanceID, "jid": jid, "step_id": step.ID,
+				"account": step.Account, "type": step.Type, "name": step.Name,
+				"block_name": step.BlockName, "description": step.Text, "start_time": startTime,
+				"end_time": endTime, "time_consuming": endTime - startTime, "is_finished": isFinished,
+				"status": status,
+			}}, {"$inc", bson.M{"retry_count": 1}}},
+		&options.UpdateOptions{Upsert: &upsert})
+	utils.CheckError(err)
+	return isSuccess
+}

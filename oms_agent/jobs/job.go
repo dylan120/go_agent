@@ -16,53 +16,6 @@ import (
 	"time"
 )
 
-func subscribeEvent(opts *config.MasterOptions, prefix string, eventChan chan utils.Event, stopChan chan bool, timeoutAt int64) {
-	var (
-		//eventChan = make(chan utils.Event)
-		err error
-	)
-	context, _ := zmq.NewContext()
-	defer context.Term()
-	eventSubSock, _ := context.NewSocket(zmq.SUB)
-	defer eventSubSock.Close()
-	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
-	eventSubSock.SetSubscribe("")
-	go func() {
-		for {
-			select {
-			case <-stopChan:
-				break
-			default:
-
-			}
-			if time.Now().Unix() > timeoutAt {
-				close(eventChan)
-				break
-			}
-			msg, _ := eventSubSock.RecvBytes(0)
-			event := utils.Event{}
-			load := utils.Load{}
-			payLoad := utils.Payload{}
-
-			err = utils.UnPackPayload(msg, &payLoad)
-			if err == nil {
-				err = json.Unmarshal(payLoad.Data, &load)
-				if !utils.CheckError(err) {
-					err = json.Unmarshal(load.Data, &event)
-					if !utils.CheckError(err) {
-						log.Debug(event.Tag)
-						log.Debug(prefix)
-						if strings.HasPrefix(event.Tag, prefix) {
-							log.Debugf("receive event data: %s", event)
-							eventChan <- event
-						}
-					}
-				}
-			}
-		}
-	}()
-}
-
 func cmdJob(step *utils.Step, server transport.ServerChannel) {
 	data, err := json.Marshal(step)
 	if !utils.CheckError(err) {
@@ -79,17 +32,15 @@ func SqlJob(step *utils.Step, server transport.ServerChannel) {
 
 }
 
-func checkJobStatus(
+func checkJobAlive(
 	opts *config.MasterOptions, jid string,
 	server transport.ServerChannel, minions []string) bool {
 	var (
 		isSuccess = false
 		isBreak   = false
-		//children  []string
 	)
 	//timeout := time.Duration(opts.TimeOut) * time.Second
 	timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
-	//zkClient, jobPath, _ := transport.JobRegister(opts, jid)
 
 	for {
 		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
@@ -120,9 +71,6 @@ func checkJobStatus(
 			doneMioion    = 0
 		)
 
-		//eventChan := make(chan utils.Event)
-		//stopChan := make(chan bool)
-		//subscribeEvent(opts, "/job/"+step.InstanceID, eventChan, stopChan, timeoutAt)
 		context, _ := zmq.NewContext()
 		defer context.Term()
 		eventSubSock, _ := context.NewSocket(zmq.SUB)
@@ -139,10 +87,8 @@ func checkJobStatus(
 
 		for {
 			if time.Now().Unix() > timeoutAt {
-				//close(eventChan)
 				break
 			}
-			log.Debug("xxxxxx")
 			msg, err := eventSubSock.RecvBytes(zmq.DONTWAIT)
 			if !utils.CheckError(err) {
 				event := utils.Event{}
@@ -169,7 +115,6 @@ func checkJobStatus(
 									}
 
 									if runningMinion == len(minions) {
-										//stopChan <- true
 										break
 									}
 
@@ -183,9 +128,11 @@ func checkJobStatus(
 						}
 					}
 				}
+			} else {
+				time.Sleep(100 * time.Millisecond)
 			}
-
 		}
+
 		if isBreak {
 			log.Debug("stop check minions alive")
 			break
@@ -253,7 +200,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 				SqlJob(&step, server)
 			}
 			time.Sleep(time.Second)
-			isSuccess := checkJobStatus(opts, jid, server, step.Minions)
+			isSuccess := checkJobAlive(opts, jid, server, step.Minions)
 			if isSuccess {
 				if step.IsPause {
 					status = utils.Stop

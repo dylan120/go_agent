@@ -129,6 +129,7 @@ func PackPayload(msg []byte, crypt string) []byte {
 		payload.Data = msg
 	}
 	out, _ = Dumps(payload)
+	//out = append(prefix,out...)
 	return out
 }
 
