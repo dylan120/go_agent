@@ -21,7 +21,7 @@ func initLog(debugLevel bool) {
 	}
 
 	formatter := &log.TextFormatter{
-		//FullTimestamp:   true,
+		FullTimestamp:   true,
 		TimestampFormat: time.RFC822,
 		ForceColors:     true,
 	}
