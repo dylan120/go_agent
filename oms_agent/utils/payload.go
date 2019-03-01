@@ -64,7 +64,7 @@ type Event struct {
 	JID           string `json:"jid"`
 	MinionId      string `json:"minion_id"`
 	Params        string `json:"params"`
-	Retcode       int    `json:"retcode"`
+	Retcode       int32  `json:"retcode"`
 	Result        string `json:"result"`
 	JobType       int    `json:"job_type"`
 	StartTime     int    `json:"start_time"`

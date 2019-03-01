@@ -1,16 +1,16 @@
 package defaults
 
 var (
-	Success = 0
-	Failure = 1
-	TimeOut = 2003
-	Run     = 1001
-	Wait    = 1002
-	Stop    = 1003
+	Success int32 = 0
+	Failure int32 = 1
+	TimeOut int32 = 2003
+	Run     int32 = 1001
+	Wait    int32 = 1002
+	Stop    int32 = 1003
 )
 
 type Status struct {
-	Code       int
+	Code       int32
 	Desc       string
 	IsFinished bool
 }
@@ -23,7 +23,7 @@ func NewStatus() *Status {
 	}
 }
 
-func (status *Status) Set(code int, desc string, isFinished bool) {
+func (status *Status) Set(code int32, desc string, isFinished bool) {
 	status.Code = code
 	status.Desc = desc
 	status.IsFinished = isFinished

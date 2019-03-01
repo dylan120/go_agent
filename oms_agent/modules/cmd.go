@@ -166,7 +166,7 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 				if err := cmd.Wait(); err != nil {
 					if exitErr, ok := err.(*exec.ExitError); ok {
 						if stat, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-							status.Set(stat.ExitStatus(), err.Error(), true)
+							status.Set(int32(stat.ExitStatus()), err.Error(), true)
 						}
 					} else {
 						status.Set(defaults.Failure, fmt.Sprintf("cmd wait: %v", err), true)
