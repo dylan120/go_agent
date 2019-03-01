@@ -28,8 +28,8 @@ func NewMaster(opts *config.MasterOptions) *Master {
 func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 	var (
 		err  error
-		data = []byte(``)
-		load = utils.Load{}
+		data []byte
+		load utils.Load
 	)
 	payLoad := utils.Payload{}
 	err = utils.UnPackPayload(msg, &payLoad)
