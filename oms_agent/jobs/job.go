@@ -138,6 +138,7 @@ func checkJobAlive(
 		time.Sleep(2 * time.Second)
 	}
 	//utils.CheckError(transport.JobDone(opts, jid))
+	isSuccess = returners.CheckJobStatus(opts, jid)
 	return isSuccess
 }
 
