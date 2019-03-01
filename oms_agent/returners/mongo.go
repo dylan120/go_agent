@@ -171,7 +171,7 @@ func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
 			cursor.Decode(&doc)
 			log.Debug(doc)
 			retcode := doc.Lookup("retcode").Int32()
-			if retcode != defaults.Success {
+			if retcode != int32(defaults.Success) {
 				isSuccess = true
 			}
 		}
