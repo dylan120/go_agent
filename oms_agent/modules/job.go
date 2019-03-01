@@ -14,8 +14,7 @@ import (
 
 func CheckAlive(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	var (
-		info utils.ProcessInfo
-		//isAlive = false
+		info    utils.ProcessInfo
 		retcode int
 		text    string
 	)
@@ -28,8 +27,6 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		if !utils.CheckError(err) {
 			proc, err := os.FindProcess(info.ProcessID)
 			if !utils.CheckError(err) {
-				//text = fmt.Sprintf("jid %s alive", step.ScriptParam)
-				//retcode = defaults.Success
 				err := proc.Signal(syscall.Signal(0))
 				if !utils.CheckError(err) {
 					text = fmt.Sprintf("jid %s alive", step.ScriptParam)
@@ -48,9 +45,5 @@ func CheckAlive(step utils.Step, procDir string, resultChannel chan string, stat
 		text = fmt.Sprintf("jid %s does not exist", step.ScriptParam)
 		retcode = defaults.Failure
 	}
-	//msg := strconv.FormatBool(isAlive)
-	//log.Debug(msg)
-	//resultChannel <- msg
-	//time.Sleep(100 * time.Millisecond)
 	status.Set(retcode, text, true)
 }

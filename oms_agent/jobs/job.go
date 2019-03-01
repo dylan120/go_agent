@@ -143,46 +143,48 @@ func checkJobStatus(
 				break
 			}
 			log.Debug("xxxxxx")
-			msg, _ := eventSubSock.RecvBytes(0)
-			event := utils.Event{}
-			load := utils.Load{}
-			payLoad := utils.Payload{}
+			msg, err := eventSubSock.RecvBytes(zmq.DONTWAIT)
+			if !utils.CheckError(err) {
+				event := utils.Event{}
+				load := utils.Load{}
+				payLoad := utils.Payload{}
 
-			err = utils.UnPackPayload(msg, &payLoad)
-			if err == nil {
-				err = json.Unmarshal(payLoad.Data, &load)
-				if !utils.CheckError(err) {
-					err = json.Unmarshal(load.Data, &event)
+				err = utils.UnPackPayload(msg, &payLoad)
+				if err == nil {
+					err = json.Unmarshal(payLoad.Data, &load)
 					if !utils.CheckError(err) {
-						log.Debug(event.Tag)
-						if strings.HasPrefix(event.Tag, prefix) {
-							log.Debugf("receive event data: %s", event)
-							if event.Function == "job.checkalive" && event.Params == jid {
-								if event.Retcode == defaults.Success {
-									runningMinion += 1
-									timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
-									log.Debugf("job %s is still running!", jid)
+						err = json.Unmarshal(load.Data, &event)
+						if !utils.CheckError(err) {
+							log.Debug(event.Tag)
+							if strings.HasPrefix(event.Tag, prefix) {
+								log.Debugf("receive event data: %s", event)
+								if event.Function == "job.checkalive" && event.Params == jid {
+									if event.Retcode == defaults.Success {
+										runningMinion += 1
+										timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
+										log.Debugf("job %s is still running!", jid)
 
-								} else if event.Retcode == defaults.Failure {
-									doneMioion += 1
+									} else if event.Retcode == defaults.Failure {
+										doneMioion += 1
+									}
+
+									if runningMinion == len(minions) {
+										//stopChan <- true
+										break
+									}
+
+									if doneMioion == len(minions) {
+										log.Debugf("job %s in all minion done!", jid)
+										isBreak = true
+										break
+									}
 								}
-
-								if runningMinion == len(minions) {
-									//stopChan <- true
-									break
-								}
-
-								if doneMioion == len(minions) {
-									log.Debugf("job %s in all minion done!", jid)
-									isBreak = true
-									break
-								}
-
 							}
 						}
 					}
 				}
 			}
+
 		}
 		if isBreak {
 			log.Debug("stop check minions alive")
