@@ -2,6 +2,7 @@ package returners
 
 import (
 	"../config"
+	"../defaults"
 	"../utils"
 	"context"
 	"encoding/json"
@@ -152,11 +153,27 @@ func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool
 
 func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
 	var (
-		isSuccess = false
+		isSuccess = true
 	)
-	//db := MongoConnect(opts)
-	//collection := db.Database(opts.Returner.Mongo.DB).Collection("step_record")
-	//ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
-
+	db := MongoConnect(opts)
+	collection := db.Database(opts.Returner.Mongo.DB).Collection("step_record")
+	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+	cursor, err := collection.Aggregate(ctx,
+		[]bson.M{
+			{"$match": bson.M{"jid": jid}},
+			{"$project": bson.D{
+				{"retcode", 1},
+			}}},
+	)
+	if !utils.CheckError(err) {
+		for cursor.Next(ctx) {
+			doc := bsonx.Doc{}
+			cursor.Decode(&doc)
+			retcode := doc.Lookup("retcode").Int32()
+			if retcode != int32(defaults.Success) {
+				isSuccess = true
+			}
+		}
+	}
 	return isSuccess
 }

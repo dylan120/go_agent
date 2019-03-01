@@ -83,8 +83,6 @@ func checkJobAlive(
 			break
 		}
 		server.Publish(step.Minions, data)
-		log.Info("sent msg")
-
 		for {
 			if time.Now().Unix() > timeoutAt {
 				break
