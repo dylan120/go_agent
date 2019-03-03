@@ -58,15 +58,21 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 	if utils.CheckError(err) {
 		fmt.Errorf("failed to connect all masters")
 	} else {
-		pubClient := transport.NewPubClientChannel(opts, "crypt")
-		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
-		subSock := ret[0].Interface().(*zmq.Socket)
 		for {
-			recvPayLoad, err := subSock.RecvBytes(0)
-			if !utils.CheckError(err) {
-				minion.HandlePayload(recvPayLoad)
+			pubClient := transport.NewPubClientChannel(opts, "crypt")
+			ret := utils.RunReflectArgsFunc(pubClient, "Connect")
+			subSock := ret[0].Interface().(*zmq.Socket)
+			defer subSock.Close()
+			for {
+				recvPayLoad, err := subSock.RecvBytes(0)
+				if !utils.CheckError(err) {
+					err := minion.HandlePayload(recvPayLoad)
+					if utils.CheckError(err) {
+						subSock.Close()
+						break
+					}
+				}
 			}
-
 		}
 
 	}
@@ -78,44 +84,44 @@ func (minion *Minion) CheckPayload(load *utils.Load) bool {
 	return utils.SliceExists(load.Target, minion.Opts.ID)
 }
 
-func (minion *Minion) HandlePayload(recvPayLoad []byte) {
+func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 	log.Println("minion ready to receive!")
-	for {
-		var (
-			err     error
-			payload utils.Payload
-			load    utils.Load
-			step    utils.Step
-		)
-		//recvPayLoad, err := subSock.RecvBytes(0)
-		err = utils.Loads(recvPayLoad, &payload)
-		if !utils.CheckError(err) {
-			if payload.Crypt == "crypt" {
-				clearLoad, err := utils.AESDecrypt(payload.Data)
+	var (
+		err       error
+		payload   utils.Payload
+		load      utils.Load
+		step      utils.Step
+		clearLoad []byte
+	)
+	//recvPayLoad, err := subSock.RecvBytes(0)
+	err = utils.Loads(recvPayLoad, &payload)
+	if !utils.CheckError(err) {
+		if payload.Crypt == "crypt" {
+			clearLoad, err = utils.AESDecrypt(payload.Data)
+			if !utils.CheckError(err) {
+				err = json.Unmarshal(clearLoad, &load)
 				if !utils.CheckError(err) {
-					err = json.Unmarshal(clearLoad, &load)
+					err = json.Unmarshal(load.Data, &step)
 					if !utils.CheckError(err) {
-						err = json.Unmarshal(load.Data, &step)
-						if !utils.CheckError(err) {
-							if err == nil {
-								if minion.CheckPayload(&load) {
-									log.Infof("receive job with id %s : %s", step.InstanceID, step.Function)
-									go minion.doTask(step.Function, step)
-								}
-							} else {
-								log.Errorf("receive unexpected data structure")
+						if err == nil {
+							if minion.CheckPayload(&load) {
+								log.Infof("receive job with id %s : %s", step.InstanceID, step.Function)
+								go minion.doTask(step.Function, step)
 							}
+						} else {
+							log.Errorf("receive unexpected data structure")
 						}
 					}
-				} else {
-					log.Error("decrypt data failed")
 				}
-
+			} else {
+				log.Error("decrypt data failed")
 			}
-		} else {
-			log.Error("errrrr")
+
 		}
+	} else {
+		log.Error("errrrr")
 	}
+	return err
 }
 
 func EventTag(prefix string, jid string, minionId string, seq int) string {
