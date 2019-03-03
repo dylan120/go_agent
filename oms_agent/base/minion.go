@@ -50,9 +50,9 @@ func SelectAliveMaster(masters []config.Master, retPort int) (string, error) {
 	return masterIP, err
 }
 
-func (minion *Minion) ConnectMaster(opts *config.MinionOptions) *zmq.Socket {
+func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 	//isConnected := false
-	var subSock *zmq.Socket = nil
+	//var subSock *zmq.Socket = nil
 	masterIP, err := SelectAliveMaster(opts.Masters, opts.RetPort)
 	opts.MasterIP = masterIP
 	if utils.CheckError(err) {
@@ -60,17 +60,25 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) *zmq.Socket {
 	} else {
 		pubClient := transport.NewPubClientChannel(opts, "crypt")
 		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
-		minion.HandlePayload(ret[0].Interface().(*zmq.Socket))
+		subSock := ret[0].Interface().(*zmq.Socket)
+		for {
+			recvPayLoad, err := subSock.RecvBytes(0)
+			if !utils.CheckError(err) {
+				minion.HandlePayload(recvPayLoad)
+			}
+
+		}
+
 	}
 
-	return subSock
+	//return subSock
 }
 
 func (minion *Minion) CheckPayload(load *utils.Load) bool {
 	return utils.SliceExists(load.Target, minion.Opts.ID)
 }
 
-func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
+func (minion *Minion) HandlePayload(recvPayLoad []byte) {
 	log.Println("minion ready to receive!")
 	for {
 		var (
@@ -79,7 +87,7 @@ func (minion *Minion) HandlePayload(subSock *zmq.Socket) {
 			load    utils.Load
 			step    utils.Step
 		)
-		recvPayLoad, err := subSock.RecvBytes(0)
+		//recvPayLoad, err := subSock.RecvBytes(0)
 		err = utils.Loads(recvPayLoad, &payload)
 		if !utils.CheckError(err) {
 			if payload.Crypt == "crypt" {
@@ -203,8 +211,8 @@ func test(opts *config.MinionOptions) {
 func (minion *Minion) Start() {
 	utils.GenRSAKeyPairs(minion.Opts.PkiDir, minion.Opts.Mode, 2048)
 	test(minion.Opts)
-	subSock := minion.ConnectMaster(minion.Opts)
-	if subSock != nil {
-		minion.HandlePayload(subSock)
-	}
+	minion.ConnectMaster(minion.Opts)
+	//if subSock != nil {
+	//	minion.HandlePayload(subSock)
+	//}
 }
