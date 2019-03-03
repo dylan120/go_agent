@@ -176,7 +176,6 @@ func AESDecrypt(data []byte) ([]byte, error) {
 	result := make([]byte, len(data))
 	blockMode.CryptBlocks(result, data)
 	length := len(result)
-	log.Debugf("%s", result)
 	unpadding := int(result[length-1])
 	return result[:(length - unpadding)], nil
 
