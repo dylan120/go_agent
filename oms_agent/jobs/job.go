@@ -101,7 +101,7 @@ func checkJobAlive(
 						if !utils.CheckError(err) {
 							log.Debug(event.Tag)
 							if strings.HasPrefix(event.Tag, prefix) {
-								log.Debugf("receive event data: %s", event)
+								log.Debugf("receive event data: %s", load.Data)
 								if event.Function == "job.checkalive" && event.Params == jid {
 									if event.Retcode == defaults.Success {
 										runningMinion += 1
