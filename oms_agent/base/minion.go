@@ -128,7 +128,6 @@ func (minion *Minion) fireEvent(tag string, event *utils.Event) bool {
 	var (
 		load = utils.Load{
 			ID: minion.Opts.ID,
-			//Data: event,
 		}
 		isTrue = false
 	)
