@@ -45,7 +45,7 @@ func GetAESKey() ([]byte, int64) {
 }
 
 func SetAESKey(aesString []byte, version int64) {
-	log.Debug("set aesString version with %d", version)
+	log.Debugf("set aesString version with %d", version)
 	cInstance = aesString
 	aesKeyVersion = version
 }
