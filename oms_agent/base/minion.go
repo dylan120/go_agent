@@ -118,8 +118,6 @@ func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 			}
 
 		}
-	} else {
-		log.Error("errrrr")
 	}
 	return err
 }
