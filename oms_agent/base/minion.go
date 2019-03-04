@@ -226,12 +226,11 @@ func (minion *Minion) Ping() {
 						tag := EventTag("minion_ping", jid, minion.Opts.ID, -1)
 						startTime := time.Now().Unix()
 						event := utils.Event{
-							Function:  "job.ping",
-							Params:    "",
 							Tag:       tag,
 							MinionId:  minion.Opts.ID,
 							JID:       jid,
 							Retcode:   defaults.Success,
+							Result:    "alive",
 							StartTime: startTime,
 							EndTime:   time.Now().Unix(),
 						}

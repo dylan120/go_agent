@@ -47,7 +47,10 @@ func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 					log.Debugf("receive event data: %s", load.Data)
 					if strings.HasPrefix(event.Tag, "/job") {
 						returners.UpdateMinion(opts, []*utils.Event{&event}, true)
+					} else if event.Tag == "minion_ping" {
+						returners.UpdateMinionStatus(opts, &event, false)
 					}
+
 				}
 			}
 		}
