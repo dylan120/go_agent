@@ -86,7 +86,6 @@ func (minion *Minion) CheckPayload(load *utils.Load) bool {
 }
 
 func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
-
 	var (
 		err       error
 		payload   utils.Payload

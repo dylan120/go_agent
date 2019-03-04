@@ -104,20 +104,33 @@ func (pubClient *ZMQPubClientChannel) Connect() (*zmq.Socket, error) {
 		err     error       = nil
 	)
 	context, _ := zmq.NewContext()
-	//defer context.Term()
-	// Socket to talk to clients
 	subSock, err = context.NewSocket(zmq.SUB)
 	if !utils.CheckError(err) {
-		//defer subSock.Close()
 		if !pubClient.Auth.IsAuthenticated {
 			log.Info("try to connect master to get auth")
 			err = pubClient.Auth.Authenticate(false)
 		}
 		pubUri := "tcp://" + net.JoinHostPort(pubClient.Auth.MasterIp, strconv.Itoa(pubClient.Auth.PublishPort))
-		log.Info(pubUri)
 		err = subSock.Connect(pubUri)
 		subSock.SetSubscribe("")
 	}
+	return subSock, err
+}
+
+func (pubClient *ZMQPubClientChannel) ReConnect() (*zmq.Socket, error) {
+	var (
+		subSock *zmq.Socket = nil
+		err     error       = nil
+	)
+	pubClient.Auth.IsAuthenticated = false
+	log.Info("try to connect master to get auth")
+	err = pubClient.Auth.Authenticate(false)
+	pubUri := "tcp://" + net.JoinHostPort(pubClient.Auth.MasterIp, strconv.Itoa(pubClient.Auth.PublishPort))
+	log.Info(pubUri)
+	context, _ := zmq.NewContext()
+	subSock, err = context.NewSocket(zmq.SUB)
+	err = subSock.Connect(pubUri)
+	subSock.SetSubscribe("")
 	return subSock, err
 }
 
