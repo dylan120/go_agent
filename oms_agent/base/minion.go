@@ -212,7 +212,7 @@ func test(opts *config.MinionOptions) {
 }
 
 func (minion *Minion) Ping() {
-	ticker := time.NewTicker(time.Duration(minion.Opts.PingInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(minion.Opts.PingInterval) * time.Minute)
 	quit := make(chan struct{})
 	instanceID, err := utils.GenInstanceID()
 	if !utils.CheckError(err) {
