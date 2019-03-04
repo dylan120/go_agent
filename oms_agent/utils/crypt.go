@@ -176,7 +176,7 @@ func AESEncrypt(data []byte) ([]byte, int64, error) {
 func AESDecrypt(data []byte, version int64) ([]byte, error) {
 	aesKey, _ := GetAESKey()
 	if aesKeyVersion != version {
-		return nil, errors.New("test")
+		return nil, DecryptDataFailure
 	}
 	block, err := aes.NewCipher(aesKey)
 	CheckError(err)
@@ -185,8 +185,8 @@ func AESDecrypt(data []byte, version int64) ([]byte, error) {
 	result := make([]byte, len(data))
 	blockMode.CryptBlocks(result, data)
 	length := len(result)
-	log.Debug(len(result))
-	log.Debug(string(result))
+	log.Debug(version)
+	log.Debug(aesKeyVersion)
 	unpadding := int(result[length-1])
 	return result[:(length - unpadding)], nil
 }
