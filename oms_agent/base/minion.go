@@ -62,7 +62,6 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 			pubClient := transport.NewPubClientChannel(opts, "crypt")
 			ret := utils.RunReflectArgsFunc(pubClient, "Connect")
 			subSock := ret[0].Interface().(*zmq.Socket)
-			defer subSock.Close()
 			for {
 				recvPayLoad, err := subSock.RecvBytes(0)
 				if !utils.CheckError(err) {
@@ -74,10 +73,7 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 				}
 			}
 		}
-
 	}
-
-	//return subSock
 }
 
 func (minion *Minion) CheckPayload(load *utils.Load) bool {
@@ -116,7 +112,6 @@ func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 			} else {
 				log.Error("decrypt data failed")
 			}
-
 		}
 	}
 	return err
@@ -143,7 +138,6 @@ func (minion *Minion) fireEvent(tag string, event *utils.Event) bool {
 		utils.RunReflectArgsFunc(reqClient, "Send", msg)
 		isTrue = true
 	}
-
 	return isTrue
 }
 
@@ -216,7 +210,4 @@ func (minion *Minion) Start() {
 	utils.GenRSAKeyPairs(minion.Opts.PkiDir, minion.Opts.Mode, 2048)
 	test(minion.Opts)
 	minion.ConnectMaster(minion.Opts)
-	//if subSock != nil {
-	//	minion.HandlePayload(subSock)
-	//}
 }
