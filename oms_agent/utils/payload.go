@@ -82,8 +82,9 @@ type Load struct {
 }
 
 type Payload struct {
-	Crypt string `json:"crypt"`
-	Data  []byte `json:"data"`
+	Crypt      string `json:"crypt"`
+	Data       []byte `json:"data"`
+	keyVersion int    `aes_version`
 }
 
 type Jobload struct {
