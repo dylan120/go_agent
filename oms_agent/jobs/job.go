@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	zmq "github.com/pebbe/zmq4"
-	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
@@ -55,7 +54,7 @@ func checkJobAlive(
 			log.Debugf("jid %s timeout %d", jid, opts.TimeOut)
 			break
 		}
-		uuId, err := uuid.NewV4()
+		instanceID, err := utils.GenInstanceID()
 		if utils.CheckError(err) {
 			break
 		}
@@ -71,7 +70,7 @@ func checkJobAlive(
 				IsPause:     false,
 				TimeOut:     opts.TimeOut,
 				Minions:     minions,
-				InstanceID:  fmt.Sprintf("%s_1_1", uuId.String()),
+				InstanceID:  fmt.Sprintf("%s_1_1", instanceID),
 			}
 			prefix        = "/job/" + step.InstanceID
 			runningMinion = 0

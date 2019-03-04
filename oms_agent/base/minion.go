@@ -20,12 +20,14 @@ var JobTagPrefix = "/job"
 
 type Minion struct {
 	Opts    *config.MinionOptions
+	ping    bool //allow ping ,avoid duplicate ping at some point
 	funcMap map[string]interface{}
 }
 
 func NewMinion(opts *config.MinionOptions) *Minion {
 	return &Minion{
 		Opts:    opts,
+		ping:    true,
 		funcMap: utils.LoadPlugins(opts),
 	}
 }
@@ -206,6 +208,40 @@ func test(opts *config.MinionOptions) {
 	tgt := filepath.Join(opts.PkiDir, "minion.pub")
 	content, _ := ioutil.ReadFile(tgt)
 	returners.UpsertRSAPublicKey(&config.Opts, content, opts.ID, config.Opts.ID)
+}
+
+func (minion *Minion) Ping() {
+	ticker := time.NewTicker(time.Duration(minion.Opts.PingInterval) * time.Second)
+	quit := make(chan struct{})
+	instanceID, err := utils.GenInstanceID()
+	if !utils.CheckError(err) {
+		jid := instanceID + "_1_1"
+		tag := EventTag("minion_ping", jid, minion.Opts.ID, -1)
+		go func() {
+			for {
+
+				select {
+				case <-ticker.C:
+					startTime := time.Now().Unix()
+					event := utils.Event{
+						Function:  "job.ping",
+						Params:    "",
+						Tag:       tag,
+						MinionId:  minion.Opts.ID,
+						JID:       jid,
+						Retcode:   defaults.Success,
+						StartTime: startTime,
+						EndTime:   time.Now().Unix(),
+					}
+					minion.fireEvent(tag, &event)
+				case <-quit:
+					ticker.Stop()
+					return
+				}
+			}
+		}()
+	}
+
 }
 
 func (minion *Minion) Start() {
