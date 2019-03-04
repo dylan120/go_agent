@@ -61,8 +61,8 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 		pubClient := transport.NewPubClientChannel(opts, "crypt")
 		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
 		subSock := ret[0].Interface().(*zmq.Socket)
+		log.Println("minion ready to receive!")
 		for {
-			log.Println("minion ready to receive!")
 			recvPayLoad, err := subSock.RecvBytes(0)
 			if !utils.CheckError(err) {
 				err := minion.HandlePayload(recvPayLoad)
@@ -72,6 +72,8 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 						log.Warnf("retry to reauth")
 						ret = utils.RunReflectArgsFunc(pubClient, "Connect")
 						subSock = ret[0].Interface().(*zmq.Socket)
+						log.Println("minion ready to receive!")
+						utils.CheckError(minion.HandlePayload(recvPayLoad))
 					}
 				}
 			}
