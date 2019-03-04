@@ -18,13 +18,18 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
-var cInstance []byte = nil
-var cOnce sync.Once
+var (
+	cInstance     []byte = nil
+	aesKeyVersion int64
+	cOnce         sync.Once
+)
 
-func GetAESKey() []byte {
+func GetAESKey() ([]byte, int64) {
 	created := false
+	aesKeyVersion = time.Now().Unix()
 	if cInstance == nil {
 		cOnce.Do(func() {
 			cInstance = GenAESKey()
@@ -36,11 +41,12 @@ func GetAESKey() []byte {
 		log.Debugf("create a aes key %s\n", string(cInstance))
 
 	}
-	return cInstance
+	return cInstance, aesKeyVersion
 }
 
-func SetAESKey(aesString []byte) {
+func SetAESKey(aesString []byte, version int64) {
 	cInstance = aesString
+	aesKeyVersion = version
 }
 
 func GenRSAKeyPairs(keyDir string, keyName string, bitSize int) {
@@ -153,8 +159,8 @@ func GenAESKey() []byte {
 	return key
 }
 
-func AESEncrypt(data []byte) ([]byte, error) {
-	aesKey := GetAESKey()
+func AESEncrypt(data []byte) ([]byte, int64, error) {
+	aesKey, version := GetAESKey()
 	block, err := aes.NewCipher(aesKey)
 	CheckError(err)
 	blockSize := block.BlockSize()
@@ -164,11 +170,14 @@ func AESEncrypt(data []byte) ([]byte, error) {
 	blockMode := cipher.NewCBCEncrypter(block, aesKey[:blockSize])
 	result := make([]byte, len(rawData))
 	blockMode.CryptBlocks(result, rawData)
-	return result, nil
+	return result, version, nil
 }
 
-func AESDecrypt(data []byte) ([]byte, error) {
-	aesKey := GetAESKey()
+func AESDecrypt(data []byte, version int64) ([]byte, error) {
+	aesKey, _ := GetAESKey()
+	if aesKeyVersion != version {
+		return nil, errors.New("test")
+	}
 	block, err := aes.NewCipher(aesKey)
 	CheckError(err)
 	blockSize := block.BlockSize()

@@ -58,17 +58,19 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 	if utils.CheckError(err) {
 		fmt.Errorf("failed to connect all masters")
 	} else {
+		pubClient := transport.NewPubClientChannel(opts, "crypt")
+		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
+		subSock := ret[0].Interface().(*zmq.Socket)
 		for {
-			pubClient := transport.NewPubClientChannel(opts, "crypt")
-			ret := utils.RunReflectArgsFunc(pubClient, "Connect")
-			subSock := ret[0].Interface().(*zmq.Socket)
-			for {
-				recvPayLoad, err := subSock.RecvBytes(0)
-				if !utils.CheckError(err) {
-					err := minion.HandlePayload(recvPayLoad)
-					if utils.CheckError(err) {
+			recvPayLoad, err := subSock.RecvBytes(0)
+			if !utils.CheckError(err) {
+				err := minion.HandlePayload(recvPayLoad)
+				if utils.CheckError(err) {
+					if err == utils.DecryptDataFailure {
 						subSock.Close()
-						break
+						log.Warnf("retry to reauth")
+						ret = utils.RunReflectArgsFunc(pubClient, "Connect")
+						subSock = ret[0].Interface().(*zmq.Socket)
 					}
 				}
 			}
@@ -93,7 +95,7 @@ func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 	err = utils.Loads(recvPayLoad, &payload)
 	if !utils.CheckError(err) {
 		if payload.Crypt == "crypt" {
-			clearLoad, err = utils.AESDecrypt(payload.Data)
+			clearLoad, err = utils.AESDecrypt(payload.Data, payload.Version)
 			if !utils.CheckError(err) {
 				err = json.Unmarshal(clearLoad, &load)
 				if !utils.CheckError(err) {
@@ -109,8 +111,6 @@ func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 						}
 					}
 				}
-			} else {
-				log.Error("decrypt data failed")
 			}
 		}
 	}

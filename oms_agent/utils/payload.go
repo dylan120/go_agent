@@ -82,9 +82,9 @@ type Load struct {
 }
 
 type Payload struct {
-	Crypt      string `json:"crypt"`
-	Data       []byte `json:"data"`
-	keyVersion int    `aes_version`
+	Crypt   string `json:"crypt"`
+	Data    []byte `json:"data"`
+	Version int64  `json:"version"` //aes version
 }
 
 type Jobload struct {
@@ -119,12 +119,13 @@ func PackPayload(msg []byte, crypt string) []byte {
 	)
 	if crypt == "crypt" {
 		payload.Crypt = "crypt"
-		cryptedData, err := AESEncrypt(msg)
+		cryptedData, version, err := AESEncrypt(msg)
 		if !CheckError(err) {
 			payload.Data = cryptedData
 		} else {
 			payload.Data = []byte("")
 		}
+		payload.Version = version
 	} else {
 		payload.Crypt = "clear"
 		payload.Data = msg
@@ -137,7 +138,7 @@ func PackPayload(msg []byte, crypt string) []byte {
 func UnPackPayload(msg []byte, payload *Payload) error {
 	err := Loads(msg, payload)
 	if payload.Crypt == "crypt" {
-		clearData, err := AESDecrypt(payload.Data)
+		clearData, err := AESDecrypt(payload.Data, payload.Version)
 		if !CheckError(err) {
 			payload.Data = clearData
 		} else {
