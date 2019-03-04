@@ -176,8 +176,6 @@ func AESEncrypt(data []byte) ([]byte, int64, error) {
 
 func AESDecrypt(data []byte, version int64) ([]byte, error) {
 	aesKey, aesKeyVersion := GetAESKey()
-	log.Debug(aesKeyVersion)
-	log.Debug(version)
 	if aesKeyVersion != version {
 		return nil, DecryptDataFailure
 	}
