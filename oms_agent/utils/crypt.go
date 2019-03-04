@@ -185,8 +185,6 @@ func AESDecrypt(data []byte, version int64) ([]byte, error) {
 	result := make([]byte, len(data))
 	blockMode.CryptBlocks(result, data)
 	length := len(result)
-	log.Debug(version)
-	log.Debug(aesKeyVersion)
 	unpadding := int(result[length-1])
 	return result[:(length - unpadding)], nil
 }
