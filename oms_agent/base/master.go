@@ -14,13 +14,11 @@ import (
 )
 
 type Master struct {
-	AESSecret []byte
-	Opts      *config.MasterOptions
+	Opts *config.MasterOptions
 }
 
 func NewMaster(opts *config.MasterOptions) *Master {
 	return &Master{
-		utils.GetAESKey(),
 		opts,
 	}
 }
