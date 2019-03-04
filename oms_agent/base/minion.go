@@ -214,34 +214,39 @@ func test(opts *config.MinionOptions) {
 func (minion *Minion) Ping() {
 	ticker := time.NewTicker(time.Duration(minion.Opts.PingInterval) * time.Minute)
 	quit := make(chan struct{})
-	instanceID, err := utils.GenInstanceID()
-	if !utils.CheckError(err) {
-		jid := instanceID + "_1_1"
-		tag := EventTag("minion_ping", jid, minion.Opts.ID, -1)
-		go func() {
-			for {
-
-				select {
-				case <-ticker.C:
-					startTime := time.Now().Unix()
-					event := utils.Event{
-						Function:  "job.ping",
-						Params:    "",
-						Tag:       tag,
-						MinionId:  minion.Opts.ID,
-						JID:       jid,
-						Retcode:   defaults.Success,
-						StartTime: startTime,
-						EndTime:   time.Now().Unix(),
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				if minion.ping {
+					minion.ping = false
+					instanceID, err := utils.GenInstanceID()
+					if !utils.CheckError(err) {
+						jid := instanceID + "_1_1"
+						tag := EventTag("minion_ping", jid, minion.Opts.ID, -1)
+						startTime := time.Now().Unix()
+						event := utils.Event{
+							Function:  "job.ping",
+							Params:    "",
+							Tag:       tag,
+							MinionId:  minion.Opts.ID,
+							JID:       jid,
+							Retcode:   defaults.Success,
+							StartTime: startTime,
+							EndTime:   time.Now().Unix(),
+						}
+						minion.fireEvent(tag, &event)
+						minion.ping = true
 					}
-					minion.fireEvent(tag, &event)
-				case <-quit:
-					ticker.Stop()
-					return
+				} else {
+					log.Warnf("ping pass")
 				}
+			case <-quit:
+				ticker.Stop()
+				return
 			}
-		}()
-	}
+		}
+	}()
 
 }
 
