@@ -11,9 +11,10 @@ import (
 type AuthLoad struct {
 	Crypt       string `json:"crypt"`
 	PubKey      []byte `json:"pub_key"`
-	MasterIp    string `json:"master_ip"`
+	MasterIP    string `json:"master_ip"`
 	PublishPort int    `json:"publish_port"`
 	AESKey      string `json:"aes_key"`
+	Version     int64  `json:"version"`
 	Token       string `json:"token"`
 }
 
@@ -25,14 +26,9 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 	var (
 		ret  []byte
 		auth = AuthLoad{
-			"crypt",
-			[]byte(""),
-			"",
-			0,
-			"",
-			""}
-		err       error
-		master_ip string
+			Crypt: "crypt"}
+		err      error
+		masterIP string
 	)
 	log.Infof("receive auth request from %s\n", load.ID)
 	validPubKey, err := returners.GetMinionPubKeyByID(opts, load.ID)
@@ -42,9 +38,9 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 		//pubKey := strings.TrimSpace(string(load.PublibcKey))
 		if load.PublibcKey == utils.Strings(&validPubKey) {
 			if !reAuth && opts.Mode == "master" {
-				master_ip = SelectOptimalMaster()
+				masterIP = SelectOptimalMaster()
 			} else {
-				master_ip = opts.PublicIp
+				masterIP = opts.PublicIp
 			}
 			if len(load.Token) != 0 {
 				privateKey := utils.GetPrivateKey(opts.PkiDir, "master")
@@ -55,12 +51,13 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 				utils.CheckError(err)
 				auth.Token = encyptToken
 			}
-			aesKey, _ := utils.GetAESKey()
+			aesKey, version := utils.GetAESKey()
 			auth.AESKey, err = utils.RSAEncrypt(validPubKey, string(aesKey))
-			if err == nil {
+			if !utils.CheckError(err) {
 				auth.Crypt = "clear"
 				auth.PubKey = utils.GetPublicKey(opts.PkiDir, "master")
-				auth.MasterIp = master_ip
+				auth.MasterIP = masterIP
+				auth.Version = version
 				auth.PublishPort = opts.PublishPort
 			}
 		} else {

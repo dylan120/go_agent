@@ -37,9 +37,9 @@ func (mauth *MinionAuth) SignIn(reAuth bool) error {
 			ID:         mauth.Opts.ID,
 			PublibcKey: utils.Strings(&pubKey),
 		}
-		aesKey        = []byte(``)
-		retLoad       = auth.AuthLoad{}
-		err     error = nil
+		aesKey  []byte
+		retLoad auth.AuthLoad
+		err     error
 	)
 	if !reAuth {
 		log.Info("Try to authenticate\n")
@@ -68,17 +68,17 @@ func (mauth *MinionAuth) SignIn(reAuth bool) error {
 				if !utils.CheckError(err) {
 					if mauth.Token == token {
 
-						if retLoad.MasterIp != mauth.Opts.MasterIP {
-							log.Infof("change master ip to %s to sign in", retLoad.MasterIp)
-							mauth.Opts.MasterIP = retLoad.MasterIp
+						if retLoad.MasterIP != mauth.Opts.MasterIP {
+							log.Infof("change master ip to %s to sign in", retLoad.MasterIP)
+							mauth.Opts.MasterIP = retLoad.MasterIP
 							continue
 						} else {
 
 							aesString, err := utils.RSADecrypt(privKey, retLoad.AESKey)
 							if !utils.CheckError(err) {
 								aesKey = []byte(aesString)
-								utils.SetAESKey(aesKey)
-								mauth.MasterIp = retLoad.MasterIp
+								utils.SetAESKey(aesKey, retLoad.Version)
+								mauth.MasterIp = retLoad.MasterIP
 								mauth.PublishPort = retLoad.PublishPort
 								mauth.IsAuthenticated = true
 								break
