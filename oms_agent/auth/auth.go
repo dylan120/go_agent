@@ -55,8 +55,8 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 				utils.CheckError(err)
 				auth.Token = encyptToken
 			}
-
-			auth.AESKey, err = utils.RSAEncrypt(validPubKey, string(utils.GetAESKey()))
+			aesKey, _ := utils.GetAESKey()
+			auth.AESKey, err = utils.RSAEncrypt(validPubKey, string(aesKey))
 			if err == nil {
 				auth.Crypt = "clear"
 				auth.PubKey = utils.GetPublicKey(opts.PkiDir, "master")
