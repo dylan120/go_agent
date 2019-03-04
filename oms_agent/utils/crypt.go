@@ -29,9 +29,9 @@ var (
 
 func GetAESKey() ([]byte, int64) {
 	created := false
-	aesKeyVersion = time.Now().Unix()
 	if cInstance == nil {
 		cOnce.Do(func() {
+			aesKeyVersion = time.Now().Unix()
 			cInstance = GenAESKey()
 			created = true
 		})
