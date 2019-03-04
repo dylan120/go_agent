@@ -63,6 +63,7 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 		pubClient := transport.NewPubClientChannel(opts, "crypt")
 		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
 		subSock := ret[0].Interface().(*zmq.Socket)
+		minion.Ping()
 		log.Println("minion ready to receive!")
 		for {
 			recvPayLoad, err := subSock.RecvBytes(0)
