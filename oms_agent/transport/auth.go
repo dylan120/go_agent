@@ -67,13 +67,11 @@ func (mauth *MinionAuth) SignIn(reAuth bool) error {
 				token, err := utils.RSADecrypt(privKey, retLoad.Token)
 				if !utils.CheckError(err) {
 					if mauth.Token == token {
-
 						if retLoad.MasterIP != mauth.Opts.MasterIP {
 							log.Infof("change master ip to %s to sign in", retLoad.MasterIP)
 							mauth.Opts.MasterIP = retLoad.MasterIP
 							continue
 						} else {
-
 							aesString, err := utils.RSADecrypt(privKey, retLoad.AESKey)
 							if !utils.CheckError(err) {
 								aesKey = []byte(aesString)

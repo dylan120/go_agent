@@ -70,7 +70,7 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 					if err == utils.DecryptDataFailure {
 						subSock.Close()
 						log.Warnf("retry to reauth")
-						ret = utils.RunReflectArgsFunc(pubClient, "Connect")
+						ret = utils.RunReflectArgsFunc(pubClient, "ReConnect")
 						subSock = ret[0].Interface().(*zmq.Socket)
 						log.Println("minion ready to receive!")
 						utils.CheckError(minion.HandlePayload(recvPayLoad))
