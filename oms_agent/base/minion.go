@@ -68,6 +68,7 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 				err := minion.HandlePayload(recvPayLoad)
 				if utils.CheckError(err) {
 					if err == utils.DecryptDataFailure {
+						//TODO if try to reconnect,the job will too late to response checkalive
 						subSock.Close()
 						log.Warnf("retry to reauth")
 						ret = utils.RunReflectArgsFunc(pubClient, "ReConnect")

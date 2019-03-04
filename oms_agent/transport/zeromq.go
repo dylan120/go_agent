@@ -250,21 +250,6 @@ func (pubServer *ZMQPubServerChannel) Publish(target []string, data []byte) {
 	log.Info("sent msg")
 }
 
-//func (eventServer *ZMQEventServerChannel) PreFork() {
-//	context, _ := zmq.NewContext()
-//	defer context.Term()
-//	eventServer.eventSock, _ = context.NewSocket(zmq.PUB)
-//	defer eventServer.eventSock.Close()
-//	setTcpKeepalive(eventServer.eventSock, eventServer.Opts)
-//	eventServer.eventSock.SetRcvhwm(1000) //TODO
-//	eventServer.eventSock.SetSndhwm(1000)
-//	pubUri := "ipc://" + filepath.Join(eventServer.Opts.SockDir, "event_publish.ipc")
-//	eventServer.eventSock.Bind(pubUri)
-//	for {
-//		time.Sleep(100 * time.Millisecond)
-//	}
-//}
-
 func socketMonitor(addr string) {
 	log.Info("create socket monitor...")
 	s, err := zmq.NewSocket(zmq.PAIR)
