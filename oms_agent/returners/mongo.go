@@ -17,6 +17,13 @@ import (
 	"time"
 )
 
+const (
+	Minion       = "minion"
+	TaskRecord   = "task_record"
+	StepRecord   = "step_record"
+	MinionResult = "minion_result"
+)
+
 var (
 	mongoInstance *mongo.Client
 	mongoOnce     sync.Once
@@ -72,7 +79,7 @@ func UpdateTask(
 	taskKwargs, err := json.Marshal(&task)
 	if !utils.CheckError(err) {
 		db := MongoConnect(opts)
-		collection := db.Database(opts.Returner.Mongo.DB).Collection("task_record")
+		collection := db.Database(opts.Returner.Mongo.DB).Collection(TaskRecord)
 		ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 		_, err := collection.UpdateMany(ctx,
 			bson.M{"task_instance_id": task.InstanceID},
@@ -94,7 +101,7 @@ func UpdateStep(
 	step *utils.Step, startTime int64, endTime int64, isFinished bool,
 	status int, upsert bool) {
 	db := MongoConnect(opts)
-	collection := db.Database(opts.Returner.Mongo.DB).Collection("step_record")
+	collection := db.Database(opts.Returner.Mongo.DB).Collection(StepRecord)
 	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 	_, err := collection.UpdateMany(ctx,
 		bson.M{"jid": jid},
@@ -112,7 +119,7 @@ func UpdateStep(
 
 func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool) {
 	db := MongoConnect(opts)
-	collection := db.Database(opts.Returner.Mongo.DB).Collection("minion_result")
+	collection := db.Database(opts.Returner.Mongo.DB).Collection(MinionResult)
 	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 	for _, event := range events {
 		cursor, err := collection.Aggregate(ctx,
@@ -143,7 +150,8 @@ func UpdateMinion(opts *config.MasterOptions, events []*utils.Event, upsert bool
 				bsonx.String(fmt.Sprintf("%v%s", doc.LookupElement("result").Value, event.Result)))
 			_, err = collection.UpdateOne(ctx,
 				bson.M{"minion_id": event.MinionId, "jid": event.JID},
-				bson.D{{"$set", doc}}, &options.UpdateOptions{Upsert: &upsert})
+				bson.D{{"$set", doc}},
+				&options.UpdateOptions{Upsert: &upsert})
 			utils.CheckError(err)
 		}
 	}
@@ -174,4 +182,21 @@ func CheckJobStatus(opts *config.MasterOptions, jid string) bool {
 		}
 	}
 	return isSuccess
+}
+
+func UpdateMinionStatus(opts *config.MasterOptions, event *utils.Event, upsert bool) {
+	db := MongoConnect(opts)
+	collection := db.Database(opts.Returner.Mongo.DB).Collection(Minion)
+	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+	_, err := collection.UpdateOne(ctx,
+		bson.M{"minion_id": event.MinionId, "jid": event.JID},
+		bson.D{{"$set",
+			bson.M{
+				"minion_id":        event.MinionId,
+				"result":           event.Result,
+				"last_update_time": event.EndTime,
+				"status":           event.Retcode,
+			}}},
+		&options.UpdateOptions{Upsert: &upsert})
+	utils.CheckError(err)
 }

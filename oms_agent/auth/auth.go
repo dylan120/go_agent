@@ -2,10 +2,12 @@ package auth
 
 import (
 	"../config"
+	"../defaults"
 	"../returners"
 	"../utils"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type AuthLoad struct {
@@ -59,6 +61,17 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 				auth.MasterIP = masterIP
 				auth.Version = version
 				auth.PublishPort = opts.PublishPort
+				tag := utils.EventTag("minion_ping", "", load.ID, -1)
+				startTime := time.Now().Unix()
+				event := &utils.Event{
+					Tag:       tag,
+					MinionId:  load.ID,
+					Retcode:   defaults.Success,
+					Result:    "alive",
+					StartTime: startTime,
+					EndTime:   time.Now().Unix(),
+				}
+				returners.UpdateMinionStatus(opts, event, true)
 			}
 		} else {
 			err = utils.MissMatchPubPkey

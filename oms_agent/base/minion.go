@@ -123,10 +123,6 @@ func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 	return err
 }
 
-func EventTag(prefix string, jid string, minionId string, seq int) string {
-	return filepath.Join(prefix, jid, minionId, strconv.Itoa(seq))
-}
-
 func (minion *Minion) fireEvent(tag string, event *utils.Event) bool {
 	var (
 		load = utils.Load{
@@ -164,7 +160,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			select {
 			case result := <-resultChannel:
 				log.Debug(result)
-				tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
+				tag := utils.EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
 				event := utils.Event{
 					Function:  funcName,
 					Params:    step.ScriptParam,
@@ -185,7 +181,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			}
 		}
 
-		tag := EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
+		tag := utils.EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
 		event := utils.Event{
 			Function:  funcName,
 			Params:    step.ScriptParam,
@@ -223,7 +219,7 @@ func (minion *Minion) Ping() {
 					instanceID, err := utils.GenInstanceID()
 					if !utils.CheckError(err) {
 						jid := instanceID + "_1_1"
-						tag := EventTag("minion_ping", jid, minion.Opts.ID, -1)
+						tag := utils.EventTag("minion_ping", jid, minion.Opts.ID, -1)
 						startTime := time.Now().Unix()
 						event := utils.Event{
 							Tag:       tag,
