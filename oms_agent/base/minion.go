@@ -62,6 +62,7 @@ func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
 		subSock := ret[0].Interface().(*zmq.Socket)
 		for {
+			log.Println("minion ready to receive!")
 			recvPayLoad, err := subSock.RecvBytes(0)
 			if !utils.CheckError(err) {
 				err := minion.HandlePayload(recvPayLoad)
@@ -83,7 +84,7 @@ func (minion *Minion) CheckPayload(load *utils.Load) bool {
 }
 
 func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
-	log.Println("minion ready to receive!")
+
 	var (
 		err       error
 		payload   utils.Payload
