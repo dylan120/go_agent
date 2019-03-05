@@ -151,16 +151,9 @@ func NewZMQReqServerChannel(opts *config.MasterOptions) *ZMQReqServerChannel {
 func NewZMQPubServerChannel(opts *config.MasterOptions) *ZMQPubServerChannel {
 	return &ZMQPubServerChannel{
 		PubServerChannel: PubServerChannel{opts},
-		//redis:            client,
-		closing: false,
+		closing:          false,
 	}
 }
-
-//func NewZMQEventServerChannel(opts *config.MasterOptions) *ZMQEventServerChannel {
-//	return &ZMQEventServerChannel{
-//		EventServerChannel: EventServerChannel{opts},
-//	}
-//}
 
 func (reqServer *ZMQReqServerChannel) PreFork() {
 	context, _ := zmq.NewContext()
@@ -227,11 +220,6 @@ func (pubServer *ZMQPubServerChannel) PreFork() {
 	//	go socketMonitor("inproc://monitor.rep")
 	//}
 	pubServer.pubSock.Bind(pubUri)
-
-	//pullSock, _ := context.NewSocket(zmq.PULL)
-	//defer pullSock.Close()
-	//pullUri := "ipc://" + filepath.Join(pubServer.Opts.SockDir, "publish_pull.ipc")
-	//pullSock.Bind(pullUri)
 	for {
 		time.Sleep(100 * time.Millisecond)
 	}

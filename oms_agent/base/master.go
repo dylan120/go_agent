@@ -63,12 +63,12 @@ func (master *Master) Start() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	manager := utils.NewRunerManager()
-	reqChanl := transport.NewReqServerChannel(master.Opts)
+	reqChan := transport.NewReqServerChannel(master.Opts)
 
-	manager.Add(reqChanl.PreFork)
+	manager.Add(reqChan.PreFork)
 	j := 0
 	for i := master.Opts.WorkerThread; i >= 1; i-- {
-		manager.Add(reqChanl.PostFork, j, HandlePayLoad)
+		manager.Add(reqChan.PostFork, j, HandlePayLoad)
 		j++
 	}
 	pubChanl := transport.NewPubServerChannel(master.Opts)

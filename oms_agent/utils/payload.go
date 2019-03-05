@@ -108,16 +108,14 @@ func Loads(data []byte, out interface{}) error {
 
 func PackPayload(msg []byte, crypt string) []byte {
 	var (
-		payload = Payload{}
-		out     = []byte("")
+		payload Payload
+		out     []byte
 	)
 	if crypt == "crypt" {
 		payload.Crypt = "crypt"
 		cryptedData, version, err := AESEncrypt(msg)
 		if !CheckError(err) {
 			payload.Data = cryptedData
-		} else {
-			payload.Data = []byte("")
 		}
 		payload.Version = version
 	} else {
