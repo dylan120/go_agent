@@ -72,9 +72,9 @@ func checkJobAlive(
 				Minions:     minions,
 				InstanceID:  fmt.Sprintf("%s_1_1", instanceID),
 			}
-			prefix        = "/job/" + step.InstanceID
+			prefix        = strings.Join([]string{utils.JobTagPrefix, step.InstanceID}, "/")
 			runningMinion = 0
-			doneMioion    = 0
+			doneMinion    = 0
 		)
 
 		data, err := json.Marshal(step)
@@ -108,14 +108,14 @@ func checkJobAlive(
 										log.Debugf("job %s is still running!", jid)
 
 									} else if event.Retcode == defaults.Failure {
-										doneMioion += 1
+										doneMinion += 1
 									}
 
 									if runningMinion == len(minions) {
 										break
 									}
 
-									if doneMioion == len(minions) {
+									if doneMinion == len(minions) {
 										log.Debugf("job %s in all minion done!", jid)
 										isBreak = true
 										break
