@@ -217,7 +217,7 @@ func (minion *Minion) Ping() {
 					instanceID, err := utils.GenInstanceID()
 					if !utils.CheckError(err) {
 						jid := instanceID + "_1_1"
-						tag := utils.EventTag("minion_ping", jid, minion.Opts.ID, -1)
+						tag := utils.EventTag(utils.PingTag, jid, minion.Opts.ID, -1)
 						startTime := time.Now().Unix()
 						event := utils.Event{
 							Tag:       tag,
