@@ -10,7 +10,7 @@ type Step struct {
 	IsFinished    bool     `json:"is_finished"`
 	BlockName     string   `json:"block_name"`
 	ScriptName    string   `json:"script_name"`
-	Creator       string   `json:"creater"`
+	Creator       string   `json:"creator"`
 	ScriptContent string   `json:"script_content"`
 	Text          string   `json:"text"`
 	InstanceID    string   `json:"step_instance_id"`
@@ -123,7 +123,6 @@ func PackPayload(msg []byte, crypt string) []byte {
 		payload.Data = msg
 	}
 	out, _ = Dumps(payload)
-	//out = append(prefix,out...)
 	return out
 }
 

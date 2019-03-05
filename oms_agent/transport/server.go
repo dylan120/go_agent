@@ -40,10 +40,3 @@ func NewPubServerChannel(opts *config.MasterOptions) ServerChannel {
 	}
 	return nil
 }
-
-//func NewEventServerChannel(opts *config.MasterOptions) ServerChannel {
-//	if opts.Transport == "zeromq" {
-//		return NewZMQEventServerChannel(opts)
-//	}
-//	return nil
-//}

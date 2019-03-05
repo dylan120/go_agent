@@ -19,7 +19,6 @@ func cmdJob(step *utils.Step, server transport.ServerChannel) {
 	data, err := json.Marshal(step)
 	if !utils.CheckError(err) {
 		server.Publish(step.Minions, data)
-		log.Info("sent msg")
 	}
 }
 
@@ -38,9 +37,7 @@ func checkJobAlive(
 		isSuccess = false
 		isBreak   = false
 	)
-	//timeout := time.Duration(opts.TimeOut) * time.Second
 	timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
-
 	context, _ := zmq.NewContext()
 	defer context.Term()
 	eventSubSock, _ := context.NewSocket(zmq.SUB)
@@ -136,7 +133,6 @@ func checkJobAlive(
 		}
 		time.Sleep(2 * time.Second)
 	}
-	//utils.CheckError(transport.JobDone(opts, jid))
 	time.Sleep(1500 * time.Millisecond)
 	isSuccess = returners.CheckJobStatus(opts, jid)
 	return isSuccess
