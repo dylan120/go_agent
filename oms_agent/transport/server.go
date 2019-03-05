@@ -5,9 +5,6 @@ import (
 )
 
 type ServerChannel interface {
-	//Run()
-	//NewServer()
-	//Close()
 	PreFork()
 	PostFork(int, func(*config.MasterOptions, []byte) ([]byte, error))
 	Publish([]string, []byte)
