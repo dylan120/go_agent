@@ -39,11 +39,6 @@ type ZMQPubServerChannel struct {
 	closing bool
 }
 
-//type ZMQEventServerChannel struct {
-//	EventServerChannel
-//	eventSock *zmq.Socket
-//}
-
 func SetBit(b bool) int {
 	var bitSetVar int
 	if b {
