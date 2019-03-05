@@ -50,7 +50,6 @@ func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 					} else if event.Tag == utils.PingTag {
 						returners.UpdateMinionStatus(opts, &event, false)
 					}
-
 				}
 			}
 		}
