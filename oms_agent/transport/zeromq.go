@@ -95,8 +95,8 @@ func (reqClient *ZMQReqClientChannel) Send(data []byte) utils.Payload {
 
 func (pubClient *ZMQPubClientChannel) Connect() (*zmq.Socket, error) {
 	var (
-		subSock *zmq.Socket = nil
-		err     error       = nil
+		subSock *zmq.Socket
+		err     error
 	)
 	context, _ := zmq.NewContext()
 	subSock, err = context.NewSocket(zmq.SUB)
@@ -114,8 +114,8 @@ func (pubClient *ZMQPubClientChannel) Connect() (*zmq.Socket, error) {
 
 func (pubClient *ZMQPubClientChannel) ReConnect() (*zmq.Socket, error) {
 	var (
-		subSock *zmq.Socket = nil
-		err     error       = nil
+		subSock *zmq.Socket
+		err     error
 	)
 	pubClient.Auth.IsAuthenticated = false
 	log.Info("try to connect master to get auth")
