@@ -8,8 +8,6 @@ type ServerChannel interface {
 	PreFork()
 	PostFork(int, func(*config.MasterOptions, []byte) ([]byte, error))
 	Publish([]string, []byte)
-	//Decode()
-	//Handle()
 }
 
 type ReqServerChannel struct {
