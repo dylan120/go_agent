@@ -4,12 +4,6 @@ import (
 	"github.com/vmihailenco/msgpack"
 )
 
-const (
-	CmdType  = 1
-	FileType = 2
-	SqlType  = 3
-)
-
 type Step struct {
 	ProjectID     int      `json:"project_id"`
 	ScriptID      int      `json:"script_id"`

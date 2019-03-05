@@ -16,8 +16,6 @@ import (
 	"time"
 )
 
-var JobTagPrefix = "/job"
-
 type Minion struct {
 	Opts    *config.MinionOptions
 	ping    bool //allow ping ,avoid duplicate ping at some point
@@ -160,7 +158,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			select {
 			case result := <-resultChannel:
 				log.Debug(result)
-				tag := utils.EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
+				tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
 				event := utils.Event{
 					Function:  funcName,
 					Params:    step.ScriptParam,
@@ -181,7 +179,7 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 			}
 		}
 
-		tag := utils.EventTag(JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
+		tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
 		event := utils.Event{
 			Function:  funcName,
 			Params:    step.ScriptParam,

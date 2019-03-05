@@ -61,7 +61,7 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 				auth.MasterIP = masterIP
 				auth.Version = version
 				auth.PublishPort = opts.PublishPort
-				tag := utils.EventTag("minion_ping", "", load.ID, -1)
+				tag := utils.EventTag(utils.PingTag, "", load.ID, -1)
 				startTime := time.Now().Unix()
 				event := &utils.Event{
 					Tag:       tag,
