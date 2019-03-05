@@ -67,7 +67,7 @@ func checkJobAlive(
 				IsPause:     false,
 				TimeOut:     opts.TimeOut,
 				Minions:     minions,
-				InstanceID:  fmt.Sprintf("%s_1_1", instanceID),
+				InstanceID:  instanceID,
 			}
 			prefix        = strings.Join([]string{utils.JobTagPrefix, step.InstanceID}, "/")
 			runningMinion = 0
