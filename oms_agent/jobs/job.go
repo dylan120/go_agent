@@ -70,8 +70,8 @@ func checkJobAlive(
 				InstanceID:  instanceID,
 			}
 			prefix        = strings.Join([]string{utils.JobTagPrefix, step.InstanceID}, "/")
-			runningMinion = 0
-			doneMinion    = 0
+			runningMinion = make(map[string]int)
+			doneMinion    = make(map[string]int)
 		)
 
 		data, err := json.Marshal(step)
@@ -100,19 +100,19 @@ func checkJobAlive(
 								log.Debugf("receive event data: %s", load.Data)
 								if event.Function == "job.checkalive" && event.Params == jid {
 									if event.Retcode == defaults.Success {
-										runningMinion += 1
+										runningMinion[event.MinionId] = 1
 										timeoutAt = time.Now().Unix() + int64(opts.TimeOut)
 										log.Debugf("job %s is still running!", jid)
 
 									} else if event.Retcode == defaults.Failure {
-										doneMinion += 1
+										doneMinion[event.MinionId] = 1
 									}
 
-									if runningMinion == len(minions) {
+									if len(runningMinion) == len(minions) {
 										break
 									}
 
-									if doneMinion == len(minions) {
+									if len(doneMinion) == len(minions) {
 										log.Debugf("job %s in all minion done!", jid)
 										isBreak = true
 										break
