@@ -16,18 +16,17 @@ import (
 	"time"
 )
 
-func cmdJob(step *utils.Step, server transport.ServerChannel) (int, error) {
+func cmdJob(step *utils.Step, server transport.ServerChannel) {
 	data, err := json.Marshal(step)
 	if !utils.CheckError(err) {
 		server.Publish(step.Minions, data)
 	}
-	return defaults.Success, nil
 }
 
-func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.ServerChannel) (int, error) {
+func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.ServerChannel) {
 	fileSource := step.FileSource
 	if len(fileSource) == 0 {
-		return defaults.InValidFileArg, errors.New("file source is null")
+		log.Error(defaults.InValidFileArg, errors.New("file source is null"))
 	}
 	for _, fs := range fileSource {
 		//step.FileSource[i].MD5sum
