@@ -24,6 +24,7 @@ func cmdJob(step *utils.Step, server transport.ServerChannel) {
 }
 
 func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.ServerChannel) {
+	log.Info("run file job")
 	fileSource := step.FileSource
 	if len(fileSource) == 0 {
 		log.Error(defaults.InValidFileArg, errors.New("file source is null"))
