@@ -1,12 +1,13 @@
 package defaults
 
 var (
-	Success = 0
-	Failure = 1
-	TimeOut = 2003
-	Run     = 1001
-	Wait    = 1002
-	Stop    = 1003
+	Success        = 0
+	Failure        = 1
+	TimeOut        = 2003
+	Run            = 1001
+	Wait           = 1002
+	Stop           = 1003
+	InValidFileArg = 2005
 )
 
 type Status struct {

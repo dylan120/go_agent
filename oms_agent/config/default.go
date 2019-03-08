@@ -53,7 +53,7 @@ var MOpts = MinionOptions{
 	"zeromq",
 	"/usr/local/go_agent/sock",
 	"/tmp/proc",
-	map[string][]string{"cmd": {"Run"}, "job": {"CheckAlive"}},
+	map[string][]string{"cmd": {"Run"}, "job": {"CheckAlive"}, "bt": {"MakeTorrent"}},
 	33510,
 	33512,
 	65565,

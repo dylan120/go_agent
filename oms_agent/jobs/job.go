@@ -9,21 +9,42 @@ import (
 	"encoding/json"
 	"fmt"
 	zmq "github.com/pebbe/zmq4"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
-func cmdJob(step *utils.Step, server transport.ServerChannel) {
+func cmdJob(step *utils.Step, server transport.ServerChannel) (int, error) {
 	data, err := json.Marshal(step)
 	if !utils.CheckError(err) {
 		server.Publish(step.Minions, data)
 	}
+	return defaults.Success, nil
 }
 
-func fileJob(step *utils.Step, server transport.ServerChannel) {
+func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.ServerChannel) (int, error) {
+	fileSource := step.FileSource
+	if len(fileSource) == 0 {
+		return defaults.InValidFileArg, errors.New("file source is null")
+	}
+	for _, fs := range fileSource {
+		//step.FileSource[i].MD5sum
+		srcFile := strings.TrimSpace(fs.File)
+		if fs.Mode == "web_agent" {
+			log.Debugf("init local file transfer.")
+			// mtgt = get_masters(web_minions, step['minions'], oms_client.opts)
+			utils.MakeTorrent(
+				opts.BtAnnouce,
+				srcFile,
+				step.InstanceID,
+			)
 
+		} else {
+
+		}
+	}
 }
 
 func SqlJob(step *utils.Step, server transport.ServerChannel) {
@@ -51,28 +72,36 @@ func checkJobAlive(
 			log.Debugf("jid %s timeout %d", jid, opts.TimeOut)
 			break
 		}
-		instanceID, err := utils.GenInstanceID()
-		if utils.CheckError(err) {
-			break
-		}
 		var (
-			step = utils.Step{
-				Function:    "job.checkalive",
-				IsFinished:  false,
-				BlockName:   "CheckAlive",
-				Creator:     "agent",
-				Type:        1,
-				ScriptParam: jid,
-				Name:        "CheckAlive",
-				IsPause:     false,
-				TimeOut:     opts.TimeOut,
-				Minions:     minions,
-				InstanceID:  instanceID,
-			}
+			//step = utils.Step{
+			//	Function:    "job.checkalive",
+			//	IsFinished:  false,
+			//	BlockName:   "CheckAlive",
+			//	Creator:     "agent",
+			//	Type:        1,
+			//	ScriptParam: jid,
+			//	Name:        "CheckAlive",
+			//	IsPause:     false,
+			//	TimeOut:     opts.TimeOut,
+			//	Minions:     minions,
+			//	InstanceID:  instanceID,
+			//}
+
 			prefix        = strings.Join([]string{utils.JobTagPrefix, step.InstanceID}, "/")
 			runningMinion = make(map[string]int)
 			doneMinion    = make(map[string]int)
 		)
+
+		step, err := utils.NewStep(
+			"job.checkalive",
+			"agent",
+			jid,
+			opts.TimeOut,
+			minions,
+			"")
+		if utils.CheckError(err) {
+			break
+		}
 
 		data, err := json.Marshal(step)
 		if utils.CheckError(err) {

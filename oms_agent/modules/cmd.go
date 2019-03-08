@@ -175,7 +175,6 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 					status.Set(defaults.Success, "", true)
 				}
 				log.Debugf("job with id %s done!", jid)
-
 			}
 		}
 	} else {
