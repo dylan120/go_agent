@@ -180,5 +180,4 @@ func Run(step utils.Step, procDir string, resultChannel chan string, status *def
 	} else {
 		log.Errorf("user %s  is not available.", account)
 	}
-
 }

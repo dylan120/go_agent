@@ -24,5 +24,4 @@ func MakeTorrent(btAnnouce []string, srcFile string, instanceID string) {
 			CheckError(err)
 		}
 	}
-
 }

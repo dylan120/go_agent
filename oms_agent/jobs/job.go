@@ -86,8 +86,6 @@ func checkJobAlive(
 			//	Minions:     minions,
 			//	InstanceID:  instanceID,
 			//}
-
-			prefix        = strings.Join([]string{utils.JobTagPrefix, step.InstanceID}, "/")
 			runningMinion = make(map[string]int)
 			doneMinion    = make(map[string]int)
 		)
@@ -99,6 +97,8 @@ func checkJobAlive(
 			opts.TimeOut,
 			minions,
 			"")
+		prefix := strings.Join([]string{utils.JobTagPrefix, step.InstanceID}, "/")
+
 		if utils.CheckError(err) {
 			break
 		}
