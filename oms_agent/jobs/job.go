@@ -219,7 +219,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 			case utils.CmdType:
 				cmdJob(&step, server)
 			case utils.FileType:
-				fileJob(&step, server)
+				fileJob(&step, opts, server)
 			case utils.SqlType:
 				SqlJob(&step, server)
 			}
