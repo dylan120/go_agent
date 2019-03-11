@@ -106,7 +106,8 @@ func (minion *Minion) HandlePayload(recvPayLoad []byte) error {
 					err = json.Unmarshal(load.Data, &step)
 					if !utils.CheckError(err) {
 						if err == nil {
-							log.Debug(json.Marshal(&step))
+							s, _ := json.Marshal(&step)
+							log.Debug(s)
 							if minion.CheckPayload(&load) {
 								log.Infof("receive job with id %s : %s", step.InstanceID, step.Function)
 								go minion.doTask(step.Function, step)
