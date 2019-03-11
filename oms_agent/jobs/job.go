@@ -73,19 +73,6 @@ func checkJobAlive(
 			break
 		}
 		var (
-			//step = utils.Step{
-			//	Function:    "job.checkalive",
-			//	IsFinished:  false,
-			//	BlockName:   "CheckAlive",
-			//	Creator:     "agent",
-			//	Type:        1,
-			//	ScriptParam: jid,
-			//	Name:        "CheckAlive",
-			//	IsPause:     false,
-			//	TimeOut:     opts.TimeOut,
-			//	Minions:     minions,
-			//	InstanceID:  instanceID,
-			//}
 			runningMinion = make(map[string]int)
 			doneMinion    = make(map[string]int)
 		)
