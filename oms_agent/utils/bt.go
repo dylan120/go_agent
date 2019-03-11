@@ -12,6 +12,7 @@ func MakeTorrent(btAnnouce []string, srcFile string, instanceID string) {
 	for _, a := range btAnnouce {
 		mi.AnnounceList = append(mi.AnnounceList, []string{a})
 	}
+	mi.AnnounceList = make([][]string, 0)
 	mi.SetDefaults()
 	info := metainfo.Info{
 		PieceLength: 256 * 1024,
