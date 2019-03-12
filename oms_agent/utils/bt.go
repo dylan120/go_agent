@@ -23,8 +23,8 @@ func MakeTorrent(btAnnouce []string, srcFile string, instanceID string) {
 	if !CheckError(err) {
 		mi.InfoBytes, err = bencode.Marshal(info)
 		if !CheckError(err) {
-			base := filepath.Join("/tmp", strings.Join([]string{instanceID, ".torrent"}, "."))
-			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
+			base := filepath.Join("/tmp", strings.Join([]string{instanceID, "torrent"}, "."))
+			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
 			err = mi.Write(f)
 			CheckError(err)
