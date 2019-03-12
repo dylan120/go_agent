@@ -4,12 +4,14 @@ import (
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
-func MakeTorrent(btAnnouce []string, srcFile string, instanceID string) {
-	mi := metainfo.MetaInfo{}
+func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
+	var (
+		//f   *os.File
+		mi  metainfo.MetaInfo
+		err error
+	)
 
 	for _, a := range btAnnouce {
 		mi.AnnounceList = append(mi.AnnounceList, []string{a})
@@ -19,15 +21,18 @@ func MakeTorrent(btAnnouce []string, srcFile string, instanceID string) {
 	info := metainfo.Info{
 		PieceLength: 256 * 1024,
 	}
-	err := info.BuildFromFilePath(srcFile)
+	err = info.BuildFromFilePath(srcFile)
 	if !CheckError(err) {
 		mi.InfoBytes, err = bencode.Marshal(info)
 		if !CheckError(err) {
-			base := filepath.Join("/tmp", strings.Join([]string{instanceID, "torrent"}, "."))
-			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
-			defer f.Close()
 			err = mi.Write(f)
 			CheckError(err)
 		}
 	}
+	return err
+}
+
+func Download(srcMaster []string, mtgt []string,
+	srcFile string, torrentFile *os.File, md5 string) {
+
 }

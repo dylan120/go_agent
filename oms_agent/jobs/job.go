@@ -11,6 +11,7 @@ import (
 	"fmt"
 	zmq "github.com/pebbe/zmq4"
 	log "github.com/sirupsen/logrus"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -29,17 +30,35 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 	if len(fileSource) == 0 {
 		log.Error(defaults.InValidFileArg, errors.New("file source is null"))
 	}
+
+	base := filepath.Join("/tmp", step.InstanceID, strings.Join([]string{step.InstanceID, "torrent"}, "."))
+	if _, err := os.Stat(base); os.IsNotExist(err) {
+		os.Mkdir(base, 0555)
+	}
 	for _, fs := range fileSource {
 		//step.FileSource[i].MD5sum
 		srcFile := strings.TrimSpace(fs.File)
 		if fs.Mode == "web_agent" {
 			log.Debugf("init local file transfer.")
 			// mtgt = get_masters(web_minions, step['minions'], oms_client.opts)
-			utils.MakeTorrent(
+
+			base := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
+			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
+			defer f.Close()
+			err = utils.MakeTorrent(
+				f,
 				opts.BtAnnouce,
 				srcFile,
-				step.InstanceID,
 			)
+			if !utils.CheckError(err) {
+				md5, err := utils.MD5sum(srcFile)
+				if !utils.CheckError(err) {
+					utils.Download(
+						[]string{opts.ID},
+						[]string{opts.ID},
+						srcFile, f, md5)
+				}
+			}
 
 		} else {
 
