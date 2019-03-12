@@ -56,7 +56,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 					utils.Download(
 						[]string{opts.ID},
 						[]string{opts.ID},
-						srcFile, f, md5)
+						srcFile, f, md5, step.FileTargetPath)
 				}
 			}
 
