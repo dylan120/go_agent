@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -142,62 +143,66 @@ func (minion *Minion) fireEvent(tag string, event *utils.Event) bool {
 }
 
 func (minion *Minion) doTask(funcName string, step utils.Step) {
-	if fun, ok := minion.funcMap[funcName]; ok {
-		resultChannel := make(chan string)
-		nowTimestamp := time.Now().Unix()
-		timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
-		status := defaults.NewStatus()
-		go fun.(func(utils.Step, string, chan string, *defaults.Status))(
-			step, minion.Opts.ProcDir, resultChannel, status)
+	resultChannel := make(chan string)
+	nowTimestamp := time.Now().Unix()
+	timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
+	status := defaults.NewStatus()
+	if strings.HasPrefix(step.Function, "bt") {
 
-		seq := 0
-		isBreak := false
-		for {
-			if isBreak {
-				break
-			}
-			select {
-			case result := <-resultChannel:
-				log.Debug(result)
-				tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
-				event := utils.Event{
-					Function:  funcName,
-					Params:    step.ScriptParam,
-					Tag:       tag,
-					StartTime: nowTimestamp,
-					MinionId:  minion.Opts.ID,
-					JID:       step.InstanceID,
-					Result:    result,
-					Retcode:   defaults.Run,
-				}
-				minion.fireEvent(tag, &event)
-				seq += 1
-			default:
-				if status.IsFinished == true || time.Now().Unix() > timeOutAt {
-					close(resultChannel)
-					isBreak = true
-				}
-			}
-		}
+	} else {
+		if fun, ok := minion.funcMap[funcName]; ok {
+			go fun.(func(utils.Step, string, chan string, *defaults.Status))(
+				step, minion.Opts.ProcDir, resultChannel, status)
 
-		tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
-		event := utils.Event{
-			Function:  funcName,
-			Params:    step.ScriptParam,
-			Tag:       tag,
-			MinionId:  minion.Opts.ID,
-			JID:       step.InstanceID,
-			Retcode:   status.Code,
-			StartTime: nowTimestamp,
-			EndTime:   time.Now().Unix(),
+			seq := 0
+			isBreak := false
+			for {
+				if isBreak {
+					break
+				}
+				select {
+				case result := <-resultChannel:
+					log.Debug(result)
+					tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
+					event := utils.Event{
+						Function:  funcName,
+						Params:    step.ScriptParam,
+						Tag:       tag,
+						StartTime: nowTimestamp,
+						MinionId:  minion.Opts.ID,
+						JID:       step.InstanceID,
+						Result:    result,
+						Retcode:   defaults.Run,
+					}
+					minion.fireEvent(tag, &event)
+					seq += 1
+				default:
+					if status.IsFinished == true || time.Now().Unix() > timeOutAt {
+						close(resultChannel)
+						isBreak = true
+					}
+				}
+			}
 		}
-		if status.Code != defaults.Success {
-			event.Result = status.Desc
-		} else {
-			log.Debugf("job %s exit with code %d", step.Function, status.Code)
-		}
-		minion.fireEvent(tag, &event)
 	}
+	tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, -1)
+	event := utils.Event{
+		Function:  funcName,
+		Params:    step.ScriptParam,
+		Tag:       tag,
+		MinionId:  minion.Opts.ID,
+		JID:       step.InstanceID,
+		Retcode:   status.Code,
+		StartTime: nowTimestamp,
+		EndTime:   time.Now().Unix(),
+	}
+	if status.Code != defaults.Success {
+		event.Result = status.Desc
+	} else {
+		log.Debugf("job %s exit with code %d", step.Function, status.Code)
+	}
+	minion.fireEvent(tag, &event)
+
 }
 
 func test(opts *config.MinionOptions) {
