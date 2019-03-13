@@ -9,6 +9,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gosuri/uiprogress"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -132,7 +133,7 @@ func Download(srcMaster []string, mtgt []string,
 	//if flags.Mmap {
 	//	clientConfig.DefaultStorage = storage.NewMMap("")
 	//}
-	clientConfig.SetListenAddr("0.0.0.0:6881")
+	//clientConfig.SetListenAddr(net.TCPAddr{IP:"0.0.0.0",Port:6881})
 	//if flags.UploadRate != -1 {
 	//	clientConfig.UploadRateLimiter = rate.NewLimiter(rate.Limit(flags.UploadRate), 256<<10)
 	//}
