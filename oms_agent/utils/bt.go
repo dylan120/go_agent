@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -101,62 +100,53 @@ func torrentBar(t *torrent.Torrent) {
 }
 
 func addTorrents(client *torrent.Client) {
-	for _, arg := range flags.Torrent {
-		t := func() *torrent.Torrent {
-			if strings.HasPrefix(arg, "magnet:") {
-				t, err := client.AddMagnet(arg)
-				if err != nil {
-					log.Fatalf("error adding magnet: %s", err)
-				}
-				return t
-			} else if strings.HasPrefix(arg, "http://") || strings.HasPrefix(arg, "https://") {
-				response, err := http.Get(arg)
-				if err != nil {
-					log.Fatalf("Error downloading torrent file: %s", err)
-				}
-
-				metaInfo, err := metainfo.Load(response.Body)
-				defer response.Body.Close()
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
-					os.Exit(1)
-				}
-				t, err := client.AddTorrent(metaInfo)
-				if err != nil {
-					log.Fatal(err)
-				}
-				return t
-			} else if strings.HasPrefix(arg, "infohash:") {
-				t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(arg, "infohash:")))
-				return t
-			} else {
-				metaInfo, err := metainfo.LoadFromFile(arg)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
-					os.Exit(1)
-				}
-				t, err := client.AddTorrent(metaInfo)
-				if err != nil {
-					log.Fatal(err)
-				}
-				return t
-			}
-		}()
-		torrentBar(t)
-		//t.AddPeers(func() (ret []torrent.Peer) {
-		//	for _, ta := range flags.TestPeer {
-		//		ret = append(ret, torrent.Peer{
-		//			IP:   ta.IP,
-		//			Port: ta.Port,
-		//		})
-		//	}
-		//	return
-		//}())
-		go func() {
-			<-t.GotInfo()
-			t.DownloadAll()
-		}()
-	}
+	//for _, arg := range flags.Torrent {
+	//	t := func() *torrent.Torrent {
+	//		if strings.HasPrefix(arg, "magnet:") {
+	//			t, err := client.AddMagnet(arg)
+	//			if err != nil {
+	//				log.Fatalf("error adding magnet: %s", err)
+	//			}
+	//			return t
+	//		} else if strings.HasPrefix(arg, "http://") || strings.HasPrefix(arg, "https://") {
+	//			response, err := http.Get(arg)
+	//			if err != nil {
+	//				log.Fatalf("Error downloading torrent file: %s", err)
+	//			}
+	//
+	//			metaInfo, err := metainfo.Load(response.Body)
+	//			defer response.Body.Close()
+	//			if err != nil {
+	//				fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
+	//				os.Exit(1)
+	//			}
+	//			t, err := client.AddTorrent(metaInfo)
+	//			if err != nil {
+	//				log.Fatal(err)
+	//			}
+	//			return t
+	//		} else if strings.HasPrefix(arg, "infohash:") {
+	//			t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(arg, "infohash:")))
+	//			return t
+	//		} else {
+	//			metaInfo, err := metainfo.LoadFromFile(arg)
+	//			if err != nil {
+	//				fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
+	//				os.Exit(1)
+	//			}
+	//			t, err := client.AddTorrent(metaInfo)
+	//			if err != nil {
+	//				log.Fatal(err)
+	//			}
+	//			return t
+	//		}
+	//	}()
+	//	torrentBar(t)
+	//	go func() {
+	//		<-t.GotInfo()
+	//		t.DownloadAll()
+	//	}()
+	//}
 }
 
 func Download(srcMaster []string, mtgt []string,
