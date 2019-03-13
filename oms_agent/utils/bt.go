@@ -117,7 +117,7 @@ func addTorrents(client *torrent.Client, magnetStream string) {
 func Download(srcMaster []string, mtgt []string,
 	srcFile string, magnetStream string, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
-	//clientConfig.Debug = flags.Debug
+	clientConfig.Debug = true
 	clientConfig.Seed = true
 	//clientConfig.PublicIp4 = flags.PublicIP
 	//clientConfig.PublicIp6 = flags.PublicIP
