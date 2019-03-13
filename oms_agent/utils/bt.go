@@ -6,6 +6,7 @@ import (
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/anacrolix/torrent/storage"
 	"github.com/dustin/go-humanize"
 	"github.com/gosuri/uiprogress"
 	"log"
@@ -119,7 +120,8 @@ func Download(srcMaster []string, mtgt []string,
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
 	//clientConfig.Seed = true
-	clientConfig.DataDir = "/tmp"
+	//clientConfig.DataDir = "/tmp"
+	clientConfig.DefaultStorage = storage.NewMMap("/tmp/313")
 	//clientConfig.PublicIp4 = flags.PublicIP
 	//clientConfig.PublicIp6 = flags.PublicIP
 	//if flags.PackedBlocklist != "" {
