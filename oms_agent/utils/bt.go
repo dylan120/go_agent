@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"expvar"
 	"fmt"
 	"github.com/anacrolix/torrent"
@@ -13,13 +14,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
 
 var progress = uiprogress.New()
 
-func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) (string, error) {
+func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
 	var (
 		//f   *os.File
 		mi  metainfo.MetaInfo
@@ -38,15 +40,14 @@ func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) (string, error)
 	if !CheckError(err) {
 		mi.InfoBytes, err = bencode.Marshal(info)
 		if !CheckError(err) {
-			//err = mi.Write(f)
-			//CheckError(err)
-			info, err := mi.UnmarshalInfo()
-			if !CheckError(err) {
-				return mi.Magnet(info.Name, mi.HashInfoBytes()).String(), nil
-			}
+			err = mi.Write(f)
+			//info, err := mi.UnmarshalInfo()
+			//if !CheckError(err) {
+			//	return mi.Magnet(info.Name, mi.HashInfoBytes()).String(), nil
+			//}
 		}
 	}
-	return "", err
+	return err
 }
 
 func stdoutAndStderrAreSameFile() bool {
@@ -100,12 +101,11 @@ func torrentBar(t *torrent.Torrent) {
 	}()
 }
 
-func addTorrents(client *torrent.Client, magnetStream string) {
+func addTorrents(client *torrent.Client, f *os.File) {
 	t := func() *torrent.Torrent {
-		t, err := client.AddMagnet(magnetStream)
-		if err != nil {
-			log.Fatalf("error adding magnet: %s", err)
-		}
+		br := bufio.NewReader(f)
+		content, _ := br.ReadString('\n')
+		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(content, "infohash:")))
 		return t
 	}()
 	torrentBar(t)
@@ -116,7 +116,7 @@ func addTorrents(client *torrent.Client, magnetStream string) {
 }
 
 func Download(srcMaster []string, mtgt []string,
-	srcFile string, magnetStream string, md5 string, fileTargetPath string) {
+	srcFile string, f *os.File, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
 	//clientConfig.Seed = true
@@ -160,7 +160,7 @@ func Download(srcMaster []string, mtgt []string,
 		log.SetOutput(progress.Bypass())
 	}
 	progress.Start()
-	addTorrents(client, magnetStream)
+	addTorrents(client, f)
 	if client.WaitAll() {
 		log.Print("downloaded ALL the torrents")
 	} else {

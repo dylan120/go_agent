@@ -45,7 +45,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 			base := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
-			magnetStream, err := utils.MakeTorrent(
+			err = utils.MakeTorrent(
 				f,
 				opts.BtAnnouce,
 				srcFile,
@@ -53,10 +53,15 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 			if !utils.CheckError(err) {
 				md5, err := utils.MD5sum(srcFile)
 				if !utils.CheckError(err) {
+
+					data, err := json.Marshal(step)
+					if !utils.CheckError(err) {
+						server.Publish(step.Minions, data)
+					}
 					utils.Download(
 						[]string{opts.ID},
 						[]string{opts.ID},
-						srcFile, magnetStream, md5, step.FileTargetPath)
+						srcFile, f, md5, step.FileTargetPath)
 				}
 			}
 
@@ -263,6 +268,8 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 }
 
 func Start(opts *config.MasterOptions, server transport.ServerChannel) {
+	//funcMap := utils.LoadPlugins(opts)
+
 	broker := Broker{}
 	err := json.Unmarshal([]byte(opts.JobBroker), &broker)
 	utils.RaiseError(err)

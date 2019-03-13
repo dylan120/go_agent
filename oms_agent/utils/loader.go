@@ -13,8 +13,8 @@ import (
 )
 
 func RunReflectArgsFunc(obj interface{}, funcName string, args ...interface{}) []reflect.Value {
-	getValue := reflect.ValueOf(obj)
-	funcValue := getValue.MethodByName(funcName)
+	value := reflect.ValueOf(obj)
+	funcValue := value.MethodByName(funcName)
 	if funcValue.Kind() != reflect.Func {
 		panic(funcName + " is not a func type")
 	} else {
