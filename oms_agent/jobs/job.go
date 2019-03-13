@@ -45,7 +45,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 			base := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
-			err = utils.MakeTorrent(
+			magnetStream, err := utils.MakeTorrent(
 				f,
 				opts.BtAnnouce,
 				srcFile,
@@ -56,7 +56,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 					utils.Download(
 						[]string{opts.ID},
 						[]string{opts.ID},
-						srcFile, f, md5, step.FileTargetPath)
+						srcFile, magnetStream, md5, step.FileTargetPath)
 				}
 			}
 

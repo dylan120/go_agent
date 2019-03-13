@@ -18,7 +18,7 @@ import (
 
 var progress = uiprogress.New()
 
-func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
+func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) (string, error) {
 	var (
 		//f   *os.File
 		mi  metainfo.MetaInfo
@@ -41,11 +41,11 @@ func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
 			//CheckError(err)
 			info, err := mi.UnmarshalInfo()
 			if !CheckError(err) {
-				log.Println(mi.Magnet(info.Name, mi.HashInfoBytes()).String())
+				return mi.Magnet(info.Name, mi.HashInfoBytes()).String(), nil
 			}
 		}
 	}
-	return err
+	return "", err
 }
 
 func stdoutAndStderrAreSameFile() bool {
@@ -99,58 +99,23 @@ func torrentBar(t *torrent.Torrent) {
 	}()
 }
 
-func addTorrents(client *torrent.Client) {
-	//for _, arg := range flags.Torrent {
-	//	t := func() *torrent.Torrent {
-	//		if strings.HasPrefix(arg, "magnet:") {
-	//			t, err := client.AddMagnet(arg)
-	//			if err != nil {
-	//				log.Fatalf("error adding magnet: %s", err)
-	//			}
-	//			return t
-	//		} else if strings.HasPrefix(arg, "http://") || strings.HasPrefix(arg, "https://") {
-	//			response, err := http.Get(arg)
-	//			if err != nil {
-	//				log.Fatalf("Error downloading torrent file: %s", err)
-	//			}
-	//
-	//			metaInfo, err := metainfo.Load(response.Body)
-	//			defer response.Body.Close()
-	//			if err != nil {
-	//				fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
-	//				os.Exit(1)
-	//			}
-	//			t, err := client.AddTorrent(metaInfo)
-	//			if err != nil {
-	//				log.Fatal(err)
-	//			}
-	//			return t
-	//		} else if strings.HasPrefix(arg, "infohash:") {
-	//			t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(arg, "infohash:")))
-	//			return t
-	//		} else {
-	//			metaInfo, err := metainfo.LoadFromFile(arg)
-	//			if err != nil {
-	//				fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
-	//				os.Exit(1)
-	//			}
-	//			t, err := client.AddTorrent(metaInfo)
-	//			if err != nil {
-	//				log.Fatal(err)
-	//			}
-	//			return t
-	//		}
-	//	}()
-	//	torrentBar(t)
-	//	go func() {
-	//		<-t.GotInfo()
-	//		t.DownloadAll()
-	//	}()
-	//}
+func addTorrents(client *torrent.Client, magnetStream string) {
+	t := func() *torrent.Torrent {
+		t, err := client.AddMagnet(magnetStream)
+		if err != nil {
+			log.Fatalf("error adding magnet: %s", err)
+		}
+		return t
+	}()
+	torrentBar(t)
+	go func() {
+		<-t.GotInfo()
+		t.DownloadAll()
+	}()
 }
 
 func Download(srcMaster []string, mtgt []string,
-	srcFile string, torrentFile *os.File, md5 string, fileTargetPath string) {
+	srcFile string, magnetStream string, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	//clientConfig.Debug = flags.Debug
 	clientConfig.Seed = true
@@ -167,7 +132,7 @@ func Download(srcMaster []string, mtgt []string,
 	//if flags.Mmap {
 	//	clientConfig.DefaultStorage = storage.NewMMap("")
 	//}
-	clientConfig.SetListenAddr("0.0.0.0")
+	clientConfig.SetListenAddr("0.0.0.0:6881")
 	//if flags.UploadRate != -1 {
 	//	clientConfig.UploadRateLimiter = rate.NewLimiter(rate.Limit(flags.UploadRate), 256<<10)
 	//}
@@ -192,7 +157,7 @@ func Download(srcMaster []string, mtgt []string,
 		log.SetOutput(progress.Bypass())
 	}
 	progress.Start()
-	addTorrents(client)
+	addTorrents(client, magnetStream)
 	if client.WaitAll() {
 		log.Print("downloaded ALL the torrents")
 	} else {
