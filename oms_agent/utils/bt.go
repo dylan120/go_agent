@@ -38,8 +38,12 @@ func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
 	if !CheckError(err) {
 		mi.InfoBytes, err = bencode.Marshal(info)
 		if !CheckError(err) {
-			err = mi.Write(f)
-			CheckError(err)
+			//err = mi.Write(f)
+			//CheckError(err)
+			info, err := mi.UnmarshalInfo()
+			if !CheckError(err) {
+				log.Println(mi.Magnet(info.Name, mi.HashInfoBytes()).String())
+			}
 		}
 	}
 	return err
