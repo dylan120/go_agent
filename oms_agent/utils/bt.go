@@ -9,7 +9,6 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gosuri/uiprogress"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
