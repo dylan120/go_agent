@@ -24,7 +24,7 @@ func cmdJob(step *utils.Step, server transport.ServerChannel) {
 	}
 }
 
-func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.ServerChannel) {
+func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]interface{}, server transport.ServerChannel) {
 	log.Info("run file job")
 	fileSource := step.FileSource
 	if len(fileSource) == 0 {
@@ -45,7 +45,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 			base := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
-			err = utils.MakeTorrent(
+			err = funcMap["maketorrent"].(func(*os.File, []string, string) error)(
 				f,
 				opts.BtAnnouce,
 				srcFile,
@@ -57,11 +57,13 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, server transport.Serv
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
+						b := []byte{}
+						f.Read(b)
+						funcMap["download"].(func([]string, []string, string,
+							[]byte, string, string))(
+							[]string{opts.ID}, []string{opts.ID},
+							srcFile, b, md5, step.FileTargetPath)
 					}
-					utils.Download(
-						[]string{opts.ID},
-						[]string{opts.ID},
-						srcFile, f, md5, step.FileTargetPath)
 				}
 			}
 
@@ -178,7 +180,7 @@ func checkJobAlive(
 	return isSuccess
 }
 
-func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerChannel) {
+func run(opts *config.MasterOptions, task *utils.Task, funcMap map[string]interface{}, server transport.ServerChannel) {
 	var (
 		status         = utils.Running
 		job            = task.Data
@@ -230,7 +232,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 			case utils.CmdType:
 				cmdJob(&step, server)
 			case utils.FileType:
-				fileJob(&step, opts, server)
+				fileJob(&step, opts, funcMap, server)
 			case utils.SqlType:
 				SqlJob(&step, server)
 			}
@@ -268,8 +270,7 @@ func run(opts *config.MasterOptions, task *utils.Task, server transport.ServerCh
 }
 
 func Start(opts *config.MasterOptions, server transport.ServerChannel) {
-	//funcMap := utils.LoadPlugins(opts)
-
+	funcMap := utils.LoadPlugins(opts)
 	broker := Broker{}
 	err := json.Unmarshal([]byte(opts.JobBroker), &broker)
 	utils.RaiseError(err)
@@ -278,7 +279,7 @@ func Start(opts *config.MasterOptions, server transport.ServerChannel) {
 		task, err := broker.Get()
 		if err == nil {
 			log.Debugf("receive job with id %s", task.InstanceID)
-			go run(opts, &task, server)
+			go run(opts, &task, funcMap, server)
 		}
 		time.Sleep(100 * time.Millisecond)
 	}

@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -147,40 +146,36 @@ func (minion *Minion) doTask(funcName string, step utils.Step) {
 	nowTimestamp := time.Now().Unix()
 	timeOutAt := nowTimestamp + int64(step.TimeOut)*2 //set max timeout
 	status := defaults.NewStatus()
-	if strings.HasPrefix(step.Function, "bt") {
+	if fun, ok := minion.funcMap[funcName]; ok {
+		go fun.(func(utils.Step, string, chan string, *defaults.Status))(
+			step, minion.Opts.ProcDir, resultChannel, status)
 
-	} else {
-		if fun, ok := minion.funcMap[funcName]; ok {
-			go fun.(func(utils.Step, string, chan string, *defaults.Status))(
-				step, minion.Opts.ProcDir, resultChannel, status)
-
-			seq := 0
-			isBreak := false
-			for {
-				if isBreak {
-					break
+		seq := 0
+		isBreak := false
+		for {
+			if isBreak {
+				break
+			}
+			select {
+			case result := <-resultChannel:
+				log.Debug(result)
+				tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
+				event := utils.Event{
+					Function:  funcName,
+					Params:    step.ScriptParam,
+					Tag:       tag,
+					StartTime: nowTimestamp,
+					MinionId:  minion.Opts.ID,
+					JID:       step.InstanceID,
+					Result:    result,
+					Retcode:   defaults.Run,
 				}
-				select {
-				case result := <-resultChannel:
-					log.Debug(result)
-					tag := utils.EventTag(utils.JobTagPrefix, step.InstanceID, minion.Opts.ID, seq)
-					event := utils.Event{
-						Function:  funcName,
-						Params:    step.ScriptParam,
-						Tag:       tag,
-						StartTime: nowTimestamp,
-						MinionId:  minion.Opts.ID,
-						JID:       step.InstanceID,
-						Result:    result,
-						Retcode:   defaults.Run,
-					}
-					minion.fireEvent(tag, &event)
-					seq += 1
-				default:
-					if status.IsFinished == true || time.Now().Unix() > timeOutAt {
-						close(resultChannel)
-						isBreak = true
-					}
+				minion.fireEvent(tag, &event)
+				seq += 1
+			default:
+				if status.IsFinished == true || time.Now().Unix() > timeOutAt {
+					close(resultChannel)
+					isBreak = true
 				}
 			}
 		}
