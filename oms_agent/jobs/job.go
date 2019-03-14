@@ -80,7 +80,6 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
-
 						funcMap["download"].(func([]string, []string, string,
 							string, string, string))(
 							[]string{opts.ID}, []string{opts.ID},
@@ -113,7 +112,7 @@ func checkJobAlive(
 	defer eventSubSock.Close()
 	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
 	eventSubSock.SetSubscribe("")
-
+	LoadPlugins
 	for {
 		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
 		if time.Now().Unix() > timeoutAt {
