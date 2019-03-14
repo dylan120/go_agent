@@ -10,9 +10,10 @@ type a struct {
 
 func test(i interface{}) {
 	val := reflect.ValueOf(i)
-	fmt.Println(val.Type().Name())
+	fmt.Println(val.Type())
 }
 
 func main() {
-	test(&a{})
+	t := a{}
+	test(&t)
 }

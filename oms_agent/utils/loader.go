@@ -31,8 +31,26 @@ var (
 	funcMap = make(map[string]interface{})
 )
 
-func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
-	base := filepath.Join(opt.BaseDir, "oms_agent/modules")
+func LoadPlugins(input interface{}) map[string]interface{} {
+	var (
+		baseDir      = "/tmp"
+		registerFunc map[string][]string
+	)
+	val := reflect.ValueOf(input)
+	switch val.Type().Name() {
+	case "*config.MinionOptions":
+		opt := input.(*config.MinionOptions)
+		baseDir = opt.BaseDir
+		registerFunc = opt.RegisterFunc
+
+	case "*config.MasterOptions":
+		opt := input.(*config.MasterOptions)
+		baseDir = opt.BaseDir
+		registerFunc = opt.RegisterFunc
+	default:
+		log.Panicln("LoadPlugins input type invalid")
+	}
+	base := filepath.Join(baseDir, "oms_agent/modules")
 	files, err := ioutil.ReadDir(base)
 	if !CheckError(err) {
 		goRoot := os.Getenv("GOROOT")
@@ -56,7 +74,7 @@ func LoadPlugins(opt *config.MinionOptions) map[string]interface{} {
 					cmd.Start()
 					if err := cmd.Wait(); err == nil {
 						plug, err := plugin.Open(soFilePath)
-						for _, fname := range opt.RegisterFunc[name] {
+						for _, fname := range registerFunc[name] {
 							if !CheckError(err) {
 								function, _ := plug.Lookup(fname)
 								fn := strings.Split(pluginFile, ".")

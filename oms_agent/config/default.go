@@ -16,6 +16,7 @@ var Opts = MasterOptions{
 	65565,
 	2,
 	"/opt/go_agent/pki",
+	map[string][]string{"cmd": {"Run"}, "job": {"CheckAlive"}, "bt": {"MakeTorrent"}},
 	"root",
 	2048,
 	"mysql",
