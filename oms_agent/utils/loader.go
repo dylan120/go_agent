@@ -37,7 +37,7 @@ func LoadPlugins(input interface{}) map[string]interface{} {
 		registerFunc map[string][]string
 	)
 	val := reflect.ValueOf(input)
-	log.Println(val.Type().Name())
+	log.Info(val.Type().Name())
 	switch val.Type().Name() {
 	case "*config.MinionOptions":
 		opt := input.(*config.MinionOptions)
