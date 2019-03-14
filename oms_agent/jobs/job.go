@@ -112,7 +112,6 @@ func checkJobAlive(
 	defer eventSubSock.Close()
 	eventSubSock.Connect("ipc://" + filepath.Join(opts.SockDir, "event_publish.ipc"))
 	eventSubSock.SetSubscribe("")
-	LoadPlugins
 	for {
 		//timeout := time.After(time.Duration(opts.TimeOut) * time.Second)
 		if time.Now().Unix() > timeoutAt {
