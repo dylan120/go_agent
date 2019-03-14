@@ -100,11 +100,11 @@ func torrentBar(t *torrent.Torrent) {
 	}()
 }
 
-func addTorrents(client *torrent.Client, torrentStream []byte) {
+func addTorrents(client *torrent.Client, torrentContent string) {
 	t := func() *torrent.Torrent {
 		//br := bufio.NewReader(f)
 		//content, _ := br.ReadString('\n')
-		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(string(torrentStream), "infohash:")))
+		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(torrentContent, "infohash:")))
 		return t
 	}()
 	torrentBar(t)
@@ -115,7 +115,7 @@ func addTorrents(client *torrent.Client, torrentStream []byte) {
 }
 
 func Download(srcMaster []string, mtgt []string,
-	srcFile string, torrentStream []byte, md5 string, fileTargetPath string) {
+	srcFile string, torrentContent string, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
 	//clientConfig.Seed = true
@@ -159,7 +159,7 @@ func Download(srcMaster []string, mtgt []string,
 		log.SetOutput(progress.Bypass())
 	}
 	progress.Start()
-	addTorrents(client, torrentStream)
+	addTorrents(client, torrentContent)
 	if client.WaitAll() {
 		log.Print("downloaded ALL the torrents")
 	} else {

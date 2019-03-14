@@ -6,11 +6,13 @@ import (
 	"../returners"
 	"../transport"
 	"../utils"
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	zmq "github.com/pebbe/zmq4"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,16 +55,36 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 			if !utils.CheckError(err) {
 				md5, err := utils.MD5sum(srcFile)
 				if !utils.CheckError(err) {
+					var (
+						content string
+						r       = bufio.NewReader(f)
+						buf     = make([]byte, 1024)
+					)
+					for {
+						n, err := r.Read(buf)
+						content += string(n)
+						if err != nil && err != io.EOF {
+							log.Error(err)
+							break
+						}
+						if 0 == n {
+							break
+						}
 
+						fmt.Println(string(buf[:n]))
+					}
+
+					step.Function = "download"
+					step.FileParam = []interface{}{[]string{opts.ID}, []string{opts.ID},
+						srcFile, content, md5, step.FileTargetPath}
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
-						b := []byte{}
-						f.Read(b)
+
 						funcMap["download"].(func([]string, []string, string,
-							[]byte, string, string))(
+							string, string, string))(
 							[]string{opts.ID}, []string{opts.ID},
-							srcFile, b, md5, step.FileTargetPath)
+							srcFile, content, md5, step.FileTargetPath)
 					}
 				}
 			}

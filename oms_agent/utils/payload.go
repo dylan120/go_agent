@@ -18,27 +18,28 @@ type FileSource struct {
 }
 
 type Step struct {
-	ProjectID      int          `json:"project_id"`
-	ScriptID       int          `json:"script_id"`
-	IsFinished     bool         `json:"is_finished"`
-	BlockName      string       `json:"block_name"`
-	ScriptName     string       `json:"script_name"`
-	Creator        string       `json:"creater"`
-	ScriptContent  string       `json:"script_content"`
-	Text           string       `json:"text"`
-	InstanceID     string       `json:"step_instance_id"`
-	Function       string       `json:"function"`
-	Type           int          `json:"type"` // 1 cmd 2 file transport 3 sql
-	ScriptParam    string       `json:"script_param"`
-	Account        string       `json:"account"`
-	Name           string       `json:"name"`
-	IsPause        bool         `json:"is_pause"`
-	TimeOut        int          `json:"timeout"`
-	ScriptType     string       `json:"script_type"`
-	FileTargetPath string       `json:"file_target_path"`
-	FileSource     []FileSource `json:"file_source"`
-	ID             string       `json:"step_id"`
-	Minions        []string     `json:"minions"`
+	ProjectID      int           `json:"project_id"`
+	ScriptID       int           `json:"script_id"`
+	IsFinished     bool          `json:"is_finished"`
+	BlockName      string        `json:"block_name"`
+	ScriptName     string        `json:"script_name"`
+	Creator        string        `json:"creater"`
+	ScriptContent  string        `json:"script_content"`
+	Text           string        `json:"text"`
+	InstanceID     string        `json:"step_instance_id"`
+	Function       string        `json:"function"`
+	Type           int           `json:"type"` // 1 cmd 2 file transport 3 sql
+	ScriptParam    string        `json:"script_param"`
+	FileParam      []interface{} `json:"file_param"`
+	Account        string        `json:"account"`
+	Name           string        `json:"name"`
+	IsPause        bool          `json:"is_pause"`
+	TimeOut        int           `json:"timeout"`
+	ScriptType     string        `json:"script_type"`
+	FileTargetPath string        `json:"file_target_path"`
+	FileSource     []FileSource  `json:"file_source"`
+	ID             string        `json:"step_id"`
+	Minions        []string      `json:"minions"`
 }
 
 type Block struct {
