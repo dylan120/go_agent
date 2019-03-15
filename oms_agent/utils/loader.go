@@ -36,6 +36,7 @@ func LoadPlugins(input interface{}) map[string]interface{} {
 		baseDir      = "/tmp"
 		registerFunc map[string][]string
 	)
+	log.Info(input)
 	val := reflect.ValueOf(input)
 	log.Info(val.Type().Name())
 	switch val.Type().Name() {
