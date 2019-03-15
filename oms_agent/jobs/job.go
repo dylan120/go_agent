@@ -74,13 +74,13 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 						fmt.Println(string(buf[:n]))
 					}
 
-					step.Function = "download"
+					step.Function = "bt.download"
 					step.FileParam = []interface{}{[]string{opts.ID}, []string{opts.ID},
 						srcFile, content, md5, step.FileTargetPath}
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
-						funcMap["download"].(func([]string, []string, string,
+						funcMap["bt.download"].(func([]string, []string, string,
 							string, string, string))(
 							[]string{opts.ID}, []string{opts.ID},
 							srcFile, content, md5, step.FileTargetPath)
