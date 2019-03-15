@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -103,9 +102,9 @@ func torrentBar(t *torrent.Torrent) {
 
 func addTorrents(client *torrent.Client, torrentStream string) {
 	t := func() *torrent.Torrent {
-		metaInfo, err := metainfo.LoadFromFile(arg)
+		metaInfo, err := metainfo.LoadFromFile(torrentStream)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
+			fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", torrentStream, err)
 			os.Exit(1)
 		}
 		t, err := client.AddTorrent(metaInfo)
