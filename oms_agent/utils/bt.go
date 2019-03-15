@@ -114,8 +114,7 @@ func addTorrents(client *torrent.Client, torrentContent string) {
 	}()
 }
 
-func Download(srcMaster []string, mtgt []string,
-	srcFile string, torrentContent string, md5 string, fileTargetPath string) {
+func Download(srcMaster []string, mtgt []string, torrentContent string, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
 	//clientConfig.Seed = true
