@@ -103,6 +103,7 @@ func torrentBar(t *torrent.Torrent) {
 
 func addTorrents(client *torrent.Client, torrentStream string) {
 	t := func() *torrent.Torrent {
+		log.Println(torrentStream)
 		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(torrentStream, "infohash:")))
 		return t
 	}()
