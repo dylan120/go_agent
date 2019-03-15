@@ -2,7 +2,6 @@ package main
 
 import (
 	"../utils"
-	"bufio"
 	"expvar"
 	"fmt"
 	"github.com/anacrolix/torrent"
@@ -102,11 +101,9 @@ func torrentBar(t *torrent.Torrent) {
 	}()
 }
 
-func addTorrents(client *torrent.Client, f *os.File) {
+func addTorrents(client *torrent.Client, torrentStream string) {
 	t := func() *torrent.Torrent {
-		br := bufio.NewReader(f)
-		content, _ := br.ReadString('\n')
-		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(content, "infohash:")))
+		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(torrentStream, "infohash:")))
 		return t
 	}()
 	torrentBar(t)
@@ -117,7 +114,7 @@ func addTorrents(client *torrent.Client, f *os.File) {
 }
 
 func Download(srcMaster []string, mtgt []string,
-	srcFile string, f *os.File, md5 string, fileTargetPath string) {
+	torrentStream string, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
 	//clientConfig.Seed = true
@@ -161,7 +158,7 @@ func Download(srcMaster []string, mtgt []string,
 		log.SetOutput(progress.Bypass())
 	}
 	progress.Start()
-	addTorrents(client, f)
+	addTorrents(client, torrentStream)
 	if client.WaitAll() {
 		log.Print("downloaded ALL the torrents")
 	} else {
