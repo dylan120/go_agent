@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -158,7 +160,11 @@ func MDownload(srcMaster []string, mtgt []string,
 
 func Download(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	clientConfig := torrent.NewDefaultClientConfig()
-	torrentStream := step.FileParam[0]
+	torrentStream := step.FileParam[0].([]byte)
+	torrentPath := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
+	f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
+	defer f.Close()
+	f.Write(torrentStream)
 	//md5 := step.FileParam[1]
 	fileTargetPath := step.FileTargetPath
 	clientConfig.Debug = true
@@ -183,7 +189,7 @@ func Download(step utils.Step, procDir string, resultChannel chan string, status
 		log.SetOutput(progress.Bypass())
 	}
 	progress.Start()
-	addTorrents(client, torrentStream)
+	addTorrents(client, torrentPath)
 	if client.WaitAll() {
 		log.Print("downloaded ALL the torrents")
 	} else {
