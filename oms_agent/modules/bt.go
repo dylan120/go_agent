@@ -160,6 +160,8 @@ func MDownload(srcMaster []string, mtgt []string,
 
 func Download(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	clientConfig := torrent.NewDefaultClientConfig()
+	t := step.FileParam[0].(string)
+	log.Println(t)
 	torrentStream := step.FileParam[0].([]byte)
 	torrentPath := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 	f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
