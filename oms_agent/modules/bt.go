@@ -103,8 +103,15 @@ func torrentBar(t *torrent.Torrent) {
 
 func addTorrents(client *torrent.Client, torrentStream string) {
 	t := func() *torrent.Torrent {
-		log.Println(torrentStream)
-		t, _ := client.AddTorrentInfoHash(metainfo.NewHashFromHex(strings.TrimPrefix(torrentStream, "infohash:")))
+		metaInfo, err := metainfo.LoadFromFile(arg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error loading torrent file %q: %s\n", arg, err)
+			os.Exit(1)
+		}
+		t, err := client.AddTorrent(metaInfo)
+		if err != nil {
+			log.Fatal(err)
+		}
 		return t
 	}()
 	torrentBar(t)

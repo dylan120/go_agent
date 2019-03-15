@@ -44,8 +44,8 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 			log.Debugf("init local file transfer.")
 			// mtgt = get_masters(web_minions, step['minions'], oms_client.opts)
 
-			base := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
-			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
+			torrentPath := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
+			f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
 			err = funcMap["bt.maketorrent"].(func(*os.File, []string, string) error)(
 				f,
@@ -83,7 +83,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 						funcMap["bt.download"].(func([]string, []string,
 							string, string, string))(
 							[]string{opts.ID}, []string{opts.ID},
-							content, md5, step.FileTargetPath)
+							torrentPath, md5, step.FileTargetPath)
 					}
 				}
 			}
