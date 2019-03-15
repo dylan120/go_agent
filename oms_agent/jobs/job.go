@@ -56,13 +56,13 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 				md5, err := utils.MD5sum(srcFile)
 				if !utils.CheckError(err) {
 					var (
-						content string
-						r       = bufio.NewReader(f)
-						buf     = make([]byte, 1024)
+						torrentStream string
+						r             = bufio.NewReader(f)
+						buf           = make([]byte, 1024)
 					)
 					for {
 						n, err := r.Read(buf)
-						content += string(n)
+						torrentStream += string(buf[:n])
 						if err != nil && err != io.EOF {
 							log.Error(err)
 							break
@@ -71,19 +71,18 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 							break
 						}
 
-						fmt.Println(string(buf[:n]))
+						//fmt.Println(string(buf[:n]))
 					}
 
 					step.Function = "bt.download"
-					step.FileParam = []interface{}{[]string{opts.ID}, []string{opts.ID},
-						content, md5, step.FileTargetPath}
+					step.FileParam = []string{torrentStream, md5}
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
-						funcMap["bt.download"].(func([]string, []string,
+						funcMap["bt.mdownload"].(func([]string, []string,
 							string, string, string))(
 							[]string{opts.ID}, []string{opts.ID},
-							torrentPath, md5, step.FileTargetPath)
+							torrentPath, md5, filepath.Dir(srcFile))
 					}
 				}
 			}

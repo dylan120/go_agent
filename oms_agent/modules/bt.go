@@ -1,6 +1,7 @@
 package main
 
 import (
+	"../defaults"
 	"../utils"
 	"expvar"
 	"fmt"
@@ -119,33 +120,51 @@ func addTorrents(client *torrent.Client, torrentStream string) {
 	}()
 }
 
-func Download(srcMaster []string, mtgt []string,
+func MDownload(srcMaster []string, mtgt []string,
 	torrentStream string, md5 string, fileTargetPath string) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
-	//clientConfig.Seed = true
-	clientConfig.DataDir = "/tmp"
-	//clientConfig.DefaultStorage = storage.NewMMap("/tmp/313")
-	//clientConfig.PublicIp4 = flags.PublicIP
-	//clientConfig.PublicIp6 = flags.PublicIP
-	//if flags.PackedBlocklist != "" {
-	//	blocklist, err := iplist.MMapPackedFile(flags.PackedBlocklist)
-	//	if err != nil {
-	//		log.Fatalf("error loading blocklist: %s", err)
-	//	}
-	//	defer blocklist.Close()
-	//	clientConfig.IPBlocklist = blocklist
-	//}
-	//if flags.Mmap {
-	//	clientConfig.DefaultStorage = storage.NewMMap("")
-	//}
-	//clientConfig.SetListenAddr(net.TCPAddr{IP:"0.0.0.0",Port:6881})
-	//if flags.UploadRate != -1 {
-	//	clientConfig.UploadRateLimiter = rate.NewLimiter(rate.Limit(flags.UploadRate), 256<<10)
-	//}
-	//if flags.DownloadRate != -1 {
-	//	clientConfig.DownloadRateLimiter = rate.NewLimiter(rate.Limit(flags.DownloadRate), 1<<20)
-	//}
+	clientConfig.Seed = true
+	clientConfig.DataDir = fileTargetPath
+	clientConfig.NoDHT = true
+
+	client, err := torrent.NewClient(clientConfig)
+	if err != nil {
+		log.Fatalf("error creating client: %s", err)
+	}
+	defer client.Close()
+	go exitSignalHandlers(client)
+
+	// Write status on the root path on the default HTTP muxer. This will be
+	// bound to localhost somewhere if GOPPROF is set, thanks to the envpprof
+	// import.
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		client.WriteStatus(w)
+	})
+	if stdoutAndStderrAreSameFile() {
+		log.SetOutput(progress.Bypass())
+	}
+	progress.Start()
+	addTorrents(client, torrentStream)
+	if client.WaitAll() {
+		log.Print("downloaded ALL the torrents")
+	} else {
+		log.Fatal("y u no complete torrents?!")
+	}
+	outputStats(client)
+	select {}
+	outputStats(client)
+}
+
+func Download(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
+	clientConfig := torrent.NewDefaultClientConfig()
+	torrentStream := step.FileParam[0]
+	//md5 := step.FileParam[1]
+	fileTargetPath := step.FileTargetPath
+	clientConfig.Debug = true
+	clientConfig.Seed = true
+	clientConfig.DataDir = fileTargetPath
+	clientConfig.NoDHT = true
 
 	client, err := torrent.NewClient(clientConfig)
 	if err != nil {
