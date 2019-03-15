@@ -47,7 +47,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 			base := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 			f, err := os.OpenFile(base, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
-			err = funcMap["maketorrent"].(func(*os.File, []string, string) error)(
+			err = funcMap["bt.maketorrent"].(func(*os.File, []string, string) error)(
 				f,
 				opts.BtAnnouce,
 				srcFile,
