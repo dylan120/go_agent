@@ -36,16 +36,16 @@ func LoadPlugins(input interface{}) map[string]interface{} {
 		baseDir      = "/tmp"
 		registerFunc map[string][]string
 	)
-	log.Info(input)
-	val := reflect.ValueOf(input)
-	log.Info(val.Type().Name())
-	switch val.Type().Name() {
-	case "*config.MinionOptions":
+	//log.Info(input)
+	//val := reflect.ValueOf(input)
+	//log.Info(val.Type().Name())
+	switch input.(type) {
+	case *config.MinionOptions:
 		opt := input.(*config.MinionOptions)
 		baseDir = opt.BaseDir
 		registerFunc = opt.RegisterFunc
 
-	case "*config.MasterOptions":
+	case *config.MasterOptions:
 		opt := input.(*config.MasterOptions)
 		baseDir = opt.BaseDir
 		registerFunc = opt.RegisterFunc
