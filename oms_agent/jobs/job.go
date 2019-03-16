@@ -6,13 +6,12 @@ import (
 	"../returners"
 	"../transport"
 	"../utils"
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	zmq "github.com/pebbe/zmq4"
 	log "github.com/sirupsen/logrus"
-	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,24 +55,23 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 				md5, err := utils.MD5sum(srcFile)
 				if !utils.CheckError(err) {
 					var (
-						//torrentStream byte
-						r             = bufio.NewReader(f)
-						torrentStream = make([]byte, 1024)
+					//torrentStream []byte
+					//r             = bufio.NewReader(f)
+					//streamChan = make([]byte, 1024)
 					)
-					for {
-						n, err := r.Read(torrentStream)
-						//torrentStream += buf[:n]
-						if err != nil && err != io.EOF {
-							log.Error(err)
-							break
-						}
-						if 0 == n {
-							break
-						}
-
-						//fmt.Println(string(buf[:n]))
-					}
-
+					//for {
+					//	n, err := r.Read(streamChan)
+					//	if err != nil && err != io.EOF {
+					//		log.Error(err)
+					//		break
+					//	}
+					//	if 0 == n {
+					//		break
+					//	}
+					//
+					//	//fmt.Println(string(buf[:n]))
+					//}
+					torrentStream, err := ioutil.ReadFile(torrentPath)
 					step.Function = "bt.download"
 					step.FileParam = []string{string(torrentStream), md5}
 					data, err := json.Marshal(step)
