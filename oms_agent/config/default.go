@@ -31,7 +31,7 @@ var Opts = MasterOptions{
 	"/tmp/bt",
 	6881,
 	4433,
-	[]string{"https://127.0.0.1:8760"},
+	[]string{"http://127.0.0.1:8760/announce"},
 	60,
 	Returners{
 		Mysql: Mysql{Ip: "127.0.0.1", Port: 3306, User: "root", Passwd: "123456", DB: "oms_agent"},
@@ -73,7 +73,7 @@ var MOpts = MinionOptions{
 	"/usr/local/go_agent/bt",
 	6881,
 	4433,
-	[]string{"https://127.0.0.1:8760"},
+	[]string{"http://127.0.0.1:8760/announce"},
 	60,
 	"/tmp/",
 	true,
