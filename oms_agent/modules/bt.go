@@ -9,6 +9,7 @@ import (
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/anacrolix/torrent/storage"
 	"github.com/dustin/go-humanize"
 	"github.com/gosuri/uiprogress"
 	"log"
@@ -128,7 +129,8 @@ func MDownload(srcMaster []string, mtgt []string,
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Debug = true
 	clientConfig.Seed = true
-	clientConfig.DataDir = fileTargetPath
+	//clientConfig.DataDir = fileTargetPath
+	clientConfig.DefaultStorage = storage.NewMMap(fileTargetPath)
 	clientConfig.NoDHT = true
 
 	client, err := torrent.NewClient(clientConfig)
@@ -159,7 +161,7 @@ func MDownload(srcMaster []string, mtgt []string,
 	outputStats(client)
 }
 
-func Download(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
+func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	t := step.FileParam[0]
 	log.Println(t)
@@ -172,7 +174,14 @@ func Download(step utils.Step, procDir string, resultChannel chan string, status
 	fileTargetPath := step.FileTargetPath
 	clientConfig.Debug = true
 	clientConfig.Seed = true
-	clientConfig.DataDir = fileTargetPath
+	clientConfig.DefaultStorage = storage.NewMMap(fileTargetPath)
+
+	//if _, err := os.Stat(fileTargetPath); os.IsNotExist(err) {
+	//	err := os.MkdirAll(fileTargetPath, 0755)
+	//	utils.CheckError(err)
+	//}
+	//clientConfig.DataDir = fileTargetPath
+
 	clientConfig.NoDHT = true
 
 	client, err := torrent.NewClient(clientConfig)
