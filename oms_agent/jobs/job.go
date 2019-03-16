@@ -6,6 +6,7 @@ import (
 	"../returners"
 	"../transport"
 	"../utils"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -77,9 +78,9 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 					//	//fmt.Println(string(buf[:n]))
 					//}
 					torrentStream, err := ioutil.ReadFile(torrentPath)
-					log.Info(string(torrentStream))
+					encoded := base64.StdEncoding.EncodeToString(torrentStream)
 					step.Function = "bt.download"
-					step.FileParam = []interface{}{torrentStream, md5}
+					step.FileParam = []string{encoded, md5}
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
