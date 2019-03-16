@@ -6,7 +6,6 @@ import (
 	"../returners"
 	"../transport"
 	"../utils"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
