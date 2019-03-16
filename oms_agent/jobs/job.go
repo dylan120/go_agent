@@ -79,7 +79,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 					torrentStream, err := ioutil.ReadFile(torrentPath)
 					log.Info(string(torrentStream))
 					step.Function = "bt.download"
-					step.FileParam = []string{string(torrentStream), md5}
+					step.FileParam = []interface{}{torrentStream, md5}
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
