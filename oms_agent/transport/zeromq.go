@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
 )
 
 type ZMQReqClientChannel struct {
@@ -215,9 +214,7 @@ func (pubServer *ZMQPubServerChannel) PreFork() {
 	//	go socketMonitor("inproc://monitor.rep")
 	//}
 	pubServer.pubSock.Bind(pubUri)
-	for {
-		time.Sleep(100 * time.Millisecond)
-	}
+	select {}
 }
 
 func (pubServer *ZMQPubServerChannel) PostFork(
