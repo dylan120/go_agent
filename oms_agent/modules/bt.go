@@ -162,11 +162,11 @@ func Download(step utils.Step, procDir string, resultChannel chan string, status
 	clientConfig := torrent.NewDefaultClientConfig()
 	t := step.FileParam[0]
 	log.Println(t)
-	torrentStream := step.FileParam[0]
+	torrentStream := []byte(step.FileParam[0])
 	torrentPath := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 	f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 	defer f.Close()
-	f.WriteString(torrentStream)
+	f.Write(torrentStream)
 	//md5 := step.FileParam[1]
 	fileTargetPath := step.FileTargetPath
 	clientConfig.Debug = true
