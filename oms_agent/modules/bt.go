@@ -12,7 +12,7 @@ import (
 	"github.com/anacrolix/torrent/storage"
 	"github.com/dustin/go-humanize"
 	"github.com/gosuri/uiprogress"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -61,7 +61,7 @@ func exitSignalHandlers(client *torrent.Client) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	for {
-		log.Printf("close signal received: %+v", <-c)
+		log.Infof("close signal received: %+v", <-c)
 		client.Close()
 	}
 }
@@ -111,7 +111,7 @@ func addTorrents(client *torrent.Client, torrentStream string) {
 		}
 		t, err := client.AddTorrent(metaInfo)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 		return t
 	}()
@@ -133,7 +133,7 @@ func MDownload(srcMaster []string, mtgt []string,
 
 	client, err := torrent.NewClient(clientConfig)
 	if err != nil {
-		log.Fatalf("error creating client: %s", err)
+		log.Errorf("error creating client: %s", err)
 	}
 	defer client.Close()
 	go exitSignalHandlers(client)
@@ -150,9 +150,9 @@ func MDownload(srcMaster []string, mtgt []string,
 	progress.Start()
 	addTorrents(client, torrentStream)
 	if client.WaitAll() {
-		log.Print("downloaded ALL the torrents")
+		log.Info("downloaded ALL the torrents")
 	} else {
-		log.Fatal("y u no complete torrents?!")
+		log.Error("y u no complete torrents?!")
 	}
 	outputStats(client)
 	select {}
@@ -184,7 +184,7 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 
 	client, err := torrent.NewClient(clientConfig)
 	if err != nil {
-		log.Fatalf("error creating client: %s", err)
+		log.Errorf("error creating client: %s", err)
 	}
 	defer client.Close()
 	go exitSignalHandlers(client)
@@ -201,9 +201,9 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 	progress.Start()
 	addTorrents(client, torrentPath)
 	if client.WaitAll() {
-		log.Print("downloaded ALL the torrents")
+		log.Info("downloaded ALL the torrents")
 	} else {
-		log.Fatal("y u no complete torrents?!")
+		log.Warn("y u no complete torrents?!")
 	}
 	outputStats(client)
 	select {}
@@ -211,7 +211,6 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 }
 
 func outputStats(cl *torrent.Client) {
-
 	expvar.Do(func(kv expvar.KeyValue) {
 		fmt.Printf("%s: %s\n", kv.Key, kv.Value)
 	})
