@@ -105,10 +105,9 @@ func SqlJob(step *utils.Step, server transport.ServerChannel) {
 
 func checkJobAlive(
 	opts *config.MasterOptions, jid string,
-	server transport.ServerChannel, minions []string) bool {
+	server transport.ServerChannel, minions []string) (isSuccess bool) {
 	var (
-		isSuccess = false
-		isBreak   = false
+		isBreak = false
 	)
 	timeoutAt := time.Now().Unix() + int64(opts.TimeOut)
 	context, _ := zmq.NewContext()
@@ -202,7 +201,7 @@ func checkJobAlive(
 	}
 	time.Sleep(1500 * time.Millisecond)
 	isSuccess = returners.CheckJobStatus(opts, jid)
-	return isSuccess
+	return
 }
 
 func run(opts *config.MasterOptions, task *utils.Task, funcMap map[string]interface{}, server transport.ServerChannel) {

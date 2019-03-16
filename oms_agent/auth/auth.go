@@ -24,12 +24,10 @@ func SelectOptimalMaster() string {
 	return "0.0.0.0"
 }
 
-func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, error) {
+func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) (ret []byte, err error) {
 	var (
-		ret  []byte
 		auth = AuthLoad{
 			Crypt: "crypt"}
-		err      error
 		masterIP string
 	)
 	log.Infof("receive auth request from %s\n", load.ID)
@@ -81,7 +79,7 @@ func Auth(opts *config.MasterOptions, load *utils.Load, reAuth bool) ([]byte, er
 		ret, err = json.Marshal(auth)
 		utils.CheckError(err)
 	}
-	return ret, err
+	return
 
 }
 

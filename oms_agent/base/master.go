@@ -23,9 +23,8 @@ func NewMaster(opts *config.MasterOptions) *Master {
 	}
 }
 
-func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
+func HandlePayLoad(opts *config.MasterOptions, msg []byte) (ret []byte, err error) {
 	var (
-		err  error
 		data []byte
 		load utils.Load
 	)
@@ -54,7 +53,8 @@ func HandlePayLoad(opts *config.MasterOptions, msg []byte) ([]byte, error) {
 			}
 		}
 	}
-	return utils.PackPayload(data, payLoad.Crypt), err
+	ret = utils.PackPayload(data, payLoad.Crypt)
+	return
 }
 
 func (master *Master) Start() {

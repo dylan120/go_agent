@@ -23,11 +23,9 @@ import (
 
 var progress = uiprogress.New()
 
-func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
+func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) (err error) {
 	var (
-		//f   *os.File
-		mi  metainfo.MetaInfo
-		err error
+		mi metainfo.MetaInfo
 	)
 	mi.SetDefaults()
 	mi.AnnounceList = make([][]string, 0)
@@ -48,7 +46,7 @@ func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
 			//}
 		}
 	}
-	return err
+	return
 }
 
 func stdoutAndStderrAreSameFile() bool {
