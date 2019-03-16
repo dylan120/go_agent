@@ -42,8 +42,13 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 		if fs.Mode == "web_agent" {
 			log.Debugf("init local file transfer.")
 			// mtgt = get_masters(web_minions, step['minions'], oms_client.opts)
-
-			torrentPath := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
+			torrentDir := filepath.Join("/tmp", step.InstanceID)
+			if _, err := os.Stat(torrentDir); os.IsNotExist(err) {
+				err := os.MkdirAll(torrentDir, 0755)
+				utils.CheckError(err)
+			}
+			torrentPath := filepath.Join(torrentDir,
+				strings.Join([]string{step.InstanceID, "torrent"}, "."))
 			f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 			defer f.Close()
 			err = funcMap["bt.maketorrent"].(func(*os.File, []string, string) error)(
