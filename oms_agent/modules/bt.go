@@ -3,7 +3,6 @@ package main
 import (
 	"../defaults"
 	"../utils"
-	"encoding/base64"
 	"expvar"
 	"fmt"
 	"github.com/anacrolix/torrent"
@@ -159,16 +158,23 @@ func MDownload(srcMaster []string, mtgt []string,
 	outputStats(client)
 }
 
+func B2S(bs []int8) string {
+	ba := []byte{}
+	for _, b := range bs {
+		ba = append(ba, byte(b))
+	}
+	return string(ba)
+}
+
 func Download(step utils.Step, procDir string, resultChannel chan string, status *defaults.Status) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	t := step.FileParam[0]
 	log.Println(t)
-	torrentStream := step.FileParam[0]
-	decoded, err := base64.StdEncoding.DecodeString(torrentStream)
+	torrentStream := []byte(step.FileParam[0][:].(string))
 	torrentPath := filepath.Join("/tmp", strings.Join([]string{step.InstanceID, "torrent"}, "."))
 	f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
 	defer f.Close()
-	f.Write(decoded)
+	f.Write(torrentStream)
 	//md5 := step.FileParam[1]
 	fileTargetPath := step.FileTargetPath
 	clientConfig.Debug = true
