@@ -30,12 +30,11 @@ func MakeTorrent(f *os.File, btAnnouce []string, srcFile string) error {
 		mi  metainfo.MetaInfo
 		err error
 	)
-
+	mi.SetDefaults()
+	mi.AnnounceList = make([][]string, 0)
 	for _, a := range btAnnouce {
 		mi.AnnounceList = append(mi.AnnounceList, []string{a})
 	}
-	mi.AnnounceList = make([][]string, 0)
-	mi.SetDefaults()
 	info := metainfo.Info{
 		PieceLength: 256 * 1024,
 	}
