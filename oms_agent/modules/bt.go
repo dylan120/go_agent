@@ -13,7 +13,6 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gosuri/uiprogress"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -142,9 +141,9 @@ func MDownload(srcMaster []string, mtgt []string,
 	// Write status on the root path on the default HTTP muxer. This will be
 	// bound to localhost somewhere if GOPPROF is set, thanks to the envpprof
 	// import.
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		client.WriteStatus(w)
-	})
+	//http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	//	client.WriteStatus(w)
+	//})
 	if stdoutAndStderrAreSameFile() {
 		log.SetOutput(progress.Bypass())
 	}
@@ -193,9 +192,9 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 	// Write status on the root path on the default HTTP muxer. This will be
 	// bound to localhost somewhere if GOPPROF is set, thanks to the envpprof
 	// import.
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		client.WriteStatus(w)
-	})
+	//http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	//	client.WriteStatus(w)
+	//})
 	if stdoutAndStderrAreSameFile() {
 		log.SetOutput(progress.Bypass())
 	}
