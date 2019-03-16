@@ -136,12 +136,6 @@ func MDownload(srcMaster []string, mtgt []string,
 	defer client.Close()
 	go exitSignalHandlers(client)
 
-	// Write status on the root path on the default HTTP muxer. This will be
-	// bound to localhost somewhere if GOPPROF is set, thanks to the envpprof
-	// import.
-	//http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-	//	client.WriteStatus(w)
-	//})
 	if stdoutAndStderrAreSameFile() {
 		log.SetOutput(progress.Bypass())
 	}
@@ -172,12 +166,6 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 	clientConfig.Seed = true
 	clientConfig.DefaultStorage = storage.NewMMap(fileTargetPath)
 
-	//if _, err := os.Stat(fileTargetPath); os.IsNotExist(err) {
-	//	err := os.MkdirAll(fileTargetPath, 0755)
-	//	utils.CheckError(err)
-	//}
-	//clientConfig.DataDir = fileTargetPath
-
 	clientConfig.NoDHT = true
 
 	client, err := torrent.NewClient(clientConfig)
@@ -200,12 +188,13 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 	addTorrents(client, torrentPath)
 	if client.WaitAll() {
 		log.Info("downloaded ALL the torrents")
+		outputStats(client)
+		time.Sleep(60)
+		outputStats(client)
 	} else {
 		log.Warn("y u no complete torrents?!")
 	}
-	outputStats(client)
-	select {}
-	outputStats(client)
+
 }
 
 func outputStats(cl *torrent.Client) {
