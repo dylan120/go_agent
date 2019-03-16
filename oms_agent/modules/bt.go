@@ -212,7 +212,7 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 
 func outputStats(cl *torrent.Client) {
 	expvar.Do(func(kv expvar.KeyValue) {
-		fmt.Printf("%s: %s\n", kv.Key, kv.Value)
+		log.Infof("%s: %s\n", kv.Key, kv.Value)
 	})
 	cl.WriteStatus(os.Stdout)
 }
