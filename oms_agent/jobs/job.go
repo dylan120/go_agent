@@ -75,7 +75,7 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 					}
 
 					step.Function = "bt.download"
-					step.FileParam = []interface{}{torrentStream, md5}
+					step.FileParam = []string{string(torrentStream), md5}
 					data, err := json.Marshal(step)
 					if !utils.CheckError(err) {
 						server.Publish(step.Minions, data)
