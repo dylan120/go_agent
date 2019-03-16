@@ -187,9 +187,10 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 	progress.Start()
 	addTorrents(client, torrentPath)
 	if client.WaitAll() {
-		log.Info("downloaded ALL the torrents")
 		outputStats(client)
-		time.Sleep(60)
+		log.Info("downloaded ALL the torrents")
+		time.Sleep(60 * time.Second)
+		log.Infof("seeded %d s ALL the torrents", 60)
 		outputStats(client)
 	} else {
 		log.Warn("y u no complete torrents?!")
