@@ -151,7 +151,7 @@ func MDownload(srcMaster []string, mtgt []string,
 	outputStats(client)
 }
 
-func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
+func Download(step utils.Step, _ string, _ chan string, status *defaults.Status) {
 	clientConfig := torrent.NewDefaultClientConfig()
 	t := step.FileParam[0]
 	log.Println(t)
@@ -192,6 +192,8 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 		time.Sleep(60 * time.Second)
 		log.Infof("seeded %d s ALL the torrents", 60)
 		outputStats(client)
+		status.Code = defaults.Success
+		status.IsFinished = true
 	} else {
 		log.Warn("y u no complete torrents?!")
 	}
