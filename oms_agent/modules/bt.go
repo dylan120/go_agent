@@ -134,7 +134,7 @@ func MDownload(srcMaster []string, mtgt []string,
 		log.Errorf("error creating client: %s", err)
 	}
 	defer client.Close()
-	go exitSignalHandlers(client)
+	//go exitSignalHandlers(client)
 
 	if stdoutAndStderrAreSameFile() {
 		log.SetOutput(progress.Bypass())
@@ -147,8 +147,11 @@ func MDownload(srcMaster []string, mtgt []string,
 		log.Error("y u no complete torrents?!")
 	}
 	outputStats(client)
-	select {}
+	log.Info("downloaded ALL the torrents")
+	time.Sleep(60 * time.Second)
+	log.Infof("seeded %d s ALL the torrents", 60)
 	outputStats(client)
+	//client.Close()
 }
 
 func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
@@ -173,7 +176,7 @@ func Download(step utils.Step, _ string, _ chan string, _ *defaults.Status) {
 		log.Errorf("error creating client: %s", err)
 	}
 	defer client.Close()
-	go exitSignalHandlers(client)
+	//go exitSignalHandlers(client)
 
 	// Write status on the root path on the default HTTP muxer. This will be
 	// bound to localhost somewhere if GOPPROF is set, thanks to the envpprof
