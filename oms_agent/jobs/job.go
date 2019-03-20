@@ -37,66 +37,52 @@ func fileJob(step *utils.Step, opts *config.MasterOptions, funcMap map[string]in
 	if _, err := os.Stat(base); os.IsNotExist(err) {
 		os.Mkdir(base, 0555)
 	}
-	for _, fs := range fileSource {
-		//step.FileSource[i].MD5sum
-		srcFile := strings.TrimSpace(fs.File)
-		if fs.Mode == "web_agent" {
-			log.Debugf("init local file transfer.")
-			// mtgt = get_masters(web_minions, step['minions'], oms_client.opts)
-			torrentDir := filepath.Join("/tmp", step.InstanceID)
-			if _, err := os.Stat(torrentDir); os.IsNotExist(err) {
-				err := os.MkdirAll(torrentDir, 0755)
-				utils.CheckError(err)
-			}
-			torrentPath := filepath.Join(torrentDir,
-				strings.Join([]string{step.InstanceID, "torrent"}, "."))
-			f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
-			defer f.Close()
-			err = funcMap["bt.maketorrent"].(func(*os.File, []string, string) error)(
-				f,
-				opts.BtAnnouce,
-				srcFile,
-			)
-			if !utils.CheckError(err) {
-				md5, err := utils.MD5sum(srcFile)
+	go func() {
+		for _, fs := range fileSource {
+			//step.FileSource[i].MD5sum
+			srcFile := strings.TrimSpace(fs.File)
+			if fs.Mode == "web_agent" {
+				log.Debugf("init local file transfer.")
+				// mtgt = get_masters(web_minions, step['minions'], oms_client.opts)
+				torrentDir := filepath.Join("/tmp", step.InstanceID)
+				if _, err := os.Stat(torrentDir); os.IsNotExist(err) {
+					err := os.MkdirAll(torrentDir, 0755)
+					utils.CheckError(err)
+				}
+				torrentPath := filepath.Join(torrentDir,
+					strings.Join([]string{step.InstanceID, "torrent"}, "."))
+				f, err := os.OpenFile(torrentPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0400)
+				defer f.Close()
+				err = funcMap["bt.maketorrent"].(func(*os.File, []string, string) error)(
+					f,
+					opts.BtAnnouce,
+					srcFile,
+				)
 				if !utils.CheckError(err) {
-					var (
-					//torrentStream []byte
-					//r             = bufio.NewReader(f)
-					//streamChan = make([]byte, 1024)
-					)
-					//for {
-					//	n, err := r.Read(streamChan)
-					//	if err != nil && err != io.EOF {
-					//		log.Error(err)
-					//		break
-					//	}
-					//	if 0 == n {
-					//		break
-					//	}
-					//
-					//	//fmt.Println(string(buf[:n]))
-					//}
-					torrentStream, err := ioutil.ReadFile(torrentPath)
-					encoded := base64.StdEncoding.EncodeToString(torrentStream)
-					log.Info(encoded)
-					step.Function = "bt.download"
-					step.FileParam = []interface{}{torrentStream, md5}
-					data, err := json.Marshal(step)
+					md5, err := utils.MD5sum(srcFile)
 					if !utils.CheckError(err) {
-						server.Publish(step.Minions, data)
-						funcMap["bt.mdownload"].(func([]string, []string,
-							string, string, string))(
-							[]string{opts.ID}, []string{opts.ID},
-							torrentPath, md5, filepath.Dir(srcFile))
+						torrentStream, err := ioutil.ReadFile(torrentPath)
+						encoded := base64.StdEncoding.EncodeToString(torrentStream)
+						log.Info(encoded)
+						step.Function = "bt.download"
+						step.FileParam = []interface{}{torrentStream, md5}
+						data, err := json.Marshal(step)
+						if !utils.CheckError(err) {
+							server.Publish(step.Minions, data)
+							funcMap["bt.mdownload"].(func([]string, []string,
+								string, string, string))(
+								[]string{opts.ID}, []string{opts.ID},
+								torrentPath, md5, filepath.Dir(srcFile))
+						}
 					}
 				}
+
+			} else {
+
 			}
-
-		} else {
-
 		}
-	}
+	}()
+
 }
 
 func SqlJob(step *utils.Step, server transport.ServerChannel) {
