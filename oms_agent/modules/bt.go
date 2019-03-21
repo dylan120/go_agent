@@ -14,10 +14,8 @@ import (
 	"github.com/gosuri/uiprogress"
 	log "github.com/sirupsen/logrus"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -55,15 +53,6 @@ func stdoutAndStderrAreSameFile() bool {
 	return os.SameFile(fi1, fi2)
 }
 
-func exitSignalHandlers(client *torrent.Client) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-	for {
-		log.Infof("close signal received: %+v", <-c)
-		client.Close()
-	}
-}
-
 func torrentBar(t *torrent.Torrent) {
 	bar := progress.AddBar(1)
 	bar.AppendCompleted()
@@ -78,7 +67,9 @@ func torrentBar(t *torrent.Torrent) {
 		} else if t.BytesCompleted() == t.Info().TotalLength() {
 			return "completed"
 		} else {
-			return fmt.Sprintf("downloading (%s/%s)", humanize.Bytes(uint64(t.BytesCompleted())), humanize.Bytes(uint64(t.Info().TotalLength())))
+			return fmt.Sprintf("downloading (%s/%s)",
+				humanize.Bytes(uint64(t.BytesCompleted())),
+				humanize.Bytes(uint64(t.Info().TotalLength())))
 		}
 	})
 	bar.PrependFunc(func(*uiprogress.Bar) string {
@@ -134,7 +125,6 @@ func MDownload(srcMaster []string, mtgt []string,
 		log.Errorf("error creating client: %s", err)
 	}
 	defer client.Close()
-	//go exitSignalHandlers(client)
 
 	if stdoutAndStderrAreSameFile() {
 		log.SetOutput(progress.Bypass())
@@ -176,14 +166,7 @@ func Download(step utils.Step, _ string, _ chan string, status *defaults.Status)
 		log.Errorf("error creating client: %s", err)
 	}
 	defer client.Close()
-	//go exitSignalHandlers(client)
 
-	// Write status on the root path on the default HTTP muxer. This will be
-	// bound to localhost somewhere if GOPPROF is set, thanks to the envpprof
-	// import.
-	//http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-	//	client.WriteStatus(w)
-	//})
 	if stdoutAndStderrAreSameFile() {
 		log.SetOutput(progress.Bypass())
 	}

@@ -72,52 +72,53 @@ func NodeRegister(opts *config.MasterOptions) {
 	}
 }
 
-func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, error) {
-	var (
-		//eventCh <-chan zk.Event
-		nodePath string
-		err      error
-	)
-	zkClient := ZKConnect(opts)
-	if zkClient != nil {
-		nodePath = filepath.Join(JobPrefix, jid)
-		if isTrue, _, _ := zkClient.Exists(JobPrefix); !isTrue {
-			zkClient.Create(JobPrefix, []byte(JobPrefix), 0, zk.WorldACL(zk.PermAll))
-		}
-		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
-			_, err = zkClient.Create(nodePath, []byte("0"), 0, zk.WorldACL(zk.PermAll))
-		}
-	}
-	return zkClient, nodePath, err
-}
-
-func JobUpdate(opts *config.MasterOptions, jid string, minion string) error {
-	var (
-		nodePath string
-		err      error
-	)
-	zkClient := ZKConnect(opts)
-	if zkClient != nil {
-		nodePath = filepath.Join(JobPrefix, jid, minion)
-		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
-			_, err = zkClient.Create(nodePath, []byte(""), 0, zk.WorldACL(zk.PermAll))
-		}
-	}
-	return err
-}
-
-func JobDone(opts *config.MasterOptions, jid string) error {
-	var (
-		nodePath string
-		isTrue   bool
-		err      error
-	)
-	zkClient := ZKConnect(opts)
-	if zkClient != nil {
-		nodePath = filepath.Join(JobPrefix, jid)
-		if isTrue, _, err = zkClient.Exists(JobPrefix); isTrue {
-			zkClient.Delete(nodePath, -1)
-		}
-	}
-	return err
-}
+//
+//func JobRegister(opts *config.MasterOptions, jid string) (*zk.Conn, string, error) {
+//	var (
+//		//eventCh <-chan zk.Event
+//		nodePath string
+//		err      error
+//	)
+//	zkClient := ZKConnect(opts)
+//	if zkClient != nil {
+//		nodePath = filepath.Join(JobPrefix, jid)
+//		if isTrue, _, _ := zkClient.Exists(JobPrefix); !isTrue {
+//			zkClient.Create(JobPrefix, []byte(JobPrefix), 0, zk.WorldACL(zk.PermAll))
+//		}
+//		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
+//			_, err = zkClient.Create(nodePath, []byte("0"), 0, zk.WorldACL(zk.PermAll))
+//		}
+//	}
+//	return zkClient, nodePath, err
+//}
+//
+//func JobUpdate(opts *config.MasterOptions, jid string, minion string) error {
+//	var (
+//		nodePath string
+//		err      error
+//	)
+//	zkClient := ZKConnect(opts)
+//	if zkClient != nil {
+//		nodePath = filepath.Join(JobPrefix, jid, minion)
+//		if isTrue, _, _ := zkClient.Exists(nodePath); !isTrue {
+//			_, err = zkClient.Create(nodePath, []byte(""), 0, zk.WorldACL(zk.PermAll))
+//		}
+//	}
+//	return err
+//}
+//
+//func JobDone(opts *config.MasterOptions, jid string) error {
+//	var (
+//		nodePath string
+//		isTrue   bool
+//		err      error
+//	)
+//	zkClient := ZKConnect(opts)
+//	if zkClient != nil {
+//		nodePath = filepath.Join(JobPrefix, jid)
+//		if isTrue, _, err = zkClient.Exists(JobPrefix); isTrue {
+//			zkClient.Delete(nodePath, -1)
+//		}
+//	}
+//	return err
+//}

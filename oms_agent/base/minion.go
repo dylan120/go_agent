@@ -53,34 +53,38 @@ func SelectAliveMaster(masters []config.Master, retPort int) (string, error) {
 func (minion *Minion) ConnectMaster(opts *config.MinionOptions) {
 	//isConnected := false
 	//var subSock *zmq.Socket = nil
-	masterIP, err := SelectAliveMaster(opts.Masters, opts.RetPort)
-	opts.MasterIP = masterIP
-	if utils.CheckError(err) {
-		fmt.Errorf("failed to connect all masters")
-	} else {
-		pubClient := transport.NewPubClientChannel(opts, "crypt")
-		ret := utils.RunReflectArgsFunc(pubClient, "Connect")
-		subSock := ret[0].Interface().(*zmq.Socket)
-		minion.Ping()
-		log.Println("minion ready to receive!")
-		for {
-			recvPayLoad, err := subSock.RecvBytes(0)
-			if !utils.CheckError(err) {
-				err := minion.HandlePayload(recvPayLoad)
-				if utils.CheckError(err) {
-					if err == utils.DecryptDataFailure {
-						//TODO if try to reconnect,the job will too late to response checkalive
-						subSock.Close()
-						log.Warnf("retry to reauth")
-						ret = utils.RunReflectArgsFunc(pubClient, "ReConnect")
-						subSock = ret[0].Interface().(*zmq.Socket)
-						log.Println("minion ready to receive!")
-						utils.CheckError(minion.HandlePayload(recvPayLoad))
+	for {
+		masterIP, err := SelectAliveMaster(opts.Masters, opts.RetPort)
+		opts.MasterIP = masterIP
+		if utils.CheckError(err) {
+			fmt.Errorf("failed to connect all masters")
+		} else {
+			pubClient := transport.NewPubClientChannel(opts, "crypt")
+			ret := utils.RunReflectArgsFunc(pubClient, "Connect")
+			subSock := ret[0].Interface().(*zmq.Socket)
+			minion.Ping()
+			log.Println("minion ready to receive!")
+			for {
+				recvPayLoad, err := subSock.RecvBytes(0)
+				if !utils.CheckError(err) {
+					err := minion.HandlePayload(recvPayLoad)
+					if utils.CheckError(err) {
+						if err == utils.DecryptDataFailure {
+							//TODO if try to reconnect,the job will too late to response checkalive
+							subSock.Close()
+							log.Warnf("retry to reauth")
+							ret = utils.RunReflectArgsFunc(pubClient, "ReConnect")
+							subSock = ret[0].Interface().(*zmq.Socket)
+							log.Println("minion ready to receive!")
+							utils.CheckError(minion.HandlePayload(recvPayLoad))
+						}
 					}
 				}
 			}
 		}
+		time.Sleep(time.Second * 10)
 	}
+
 }
 
 func (minion *Minion) CheckPayload(load *utils.Load) bool {
