@@ -1,17 +1,17 @@
 package utils
 
 import (
-	"../log"
+	log "github.com/sirupsen/logrus"
 )
 
-func CheckType(t interface{}){
+func CheckType(t interface{}) {
 
 }
 
-func CheckError(err error) bool{
+func CheckError(err error) bool {
 	isTrue := false
 	if err != nil {
-		log.Error.Println(err.Error())
+		log.Error(err.Error())
 		isTrue = true
 	}
 	return isTrue
