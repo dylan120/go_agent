@@ -118,6 +118,11 @@ func (s structSlice) Len() int           { return len(s) }
 func (s structSlice) Less(i, j int) bool { return s[i].key < s[j].key }
 func (s structSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
+func isNilValue(v reflect.Value) bool {
+	return (v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr) &&
+		v.IsNil()
+}
+
 func readStruct(s structSlice, v reflect.Value) (err error) {
 	t := v.Type()
 	for i := 0; i < t.NumField(); i++ {
@@ -126,7 +131,7 @@ func readStruct(s structSlice, v reflect.Value) (err error) {
 		if !fieldValue.CanInterface() { //unexported value
 			continue
 		}
-		if fieldValue.IsNil() { //nil value
+		if isNilValue(fieldValue) { //nil value
 			continue
 		}
 		tagValue := f.Tag.Get("bencode")
