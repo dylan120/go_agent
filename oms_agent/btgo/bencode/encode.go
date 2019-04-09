@@ -159,7 +159,9 @@ func readStruct(s structSlice, v reflect.Value) (err error) {
 		if f.Type.Kind() == reflect.Struct && tagValue == "" {
 			err = readStruct(s, fieldValue)
 		} else {
+
 			s = append(s, structDict{f.Name, fieldValue})
+			log.Info(s)
 		}
 	}
 	return err
