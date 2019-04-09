@@ -147,13 +147,15 @@ func readStruct(s structSlice, v reflect.Value) (err error) {
 			continue
 		}
 		tagValue := f.Tag.Get("bencode")
-		fmt.Println(tagValue)
+		log.Info(tagValue)
+		log.Info(f.Anonymous)
 		if tagValue != "" {
 			if tagValue == "-" {
 				continue
 			}
 			//TODO
 		}
+
 		if f.Anonymous && f.Type.Kind() == reflect.Struct && tagValue == "" {
 			err = readStruct(s, fieldValue)
 		} else {
