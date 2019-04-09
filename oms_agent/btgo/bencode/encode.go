@@ -72,7 +72,7 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		}
 		e.write("e")
 	case reflect.Map:
-		if isNilValue(v) { //nil value
+		if v.Type().Key().Kind() != reflect.String { //nil value
 			//continue
 			log.Error("dict keys must be string")
 		} else {
@@ -86,6 +86,10 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 			)
 			sort.Sort(keys)
 			for _, k := range keys {
+				mval := v.MapIndex(k)
+				if isNilValue(mval) {
+					continue
+				}
 				e.encode(k)
 				e.encode(v.MapIndex(k))
 			}
