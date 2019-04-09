@@ -64,6 +64,7 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			switch mode := fi.Mode(); {
 			case mode.IsRegular():
 				info.Files = append(info.Files, File{Length: fi.Size(), Path: f})
+				log.Info(f)
 				info.GenPieces(f)
 				tfile, err := os.Create(jid + ".torrent")
 				if !utils.CheckError(err) {
