@@ -19,9 +19,9 @@ type Info struct {
 	Name        string
 	PieceLength int64
 	Pieces      []byte
-	Length      int64
-	Path        string
-	Files       []File
+	Length      int64  `bencode:"length,omitempty"`
+	Path        string `bencode:"files,omitempty"`
+	Files       []File `bencode:"files,omitempty"`
 }
 
 type MetaInfo struct {
