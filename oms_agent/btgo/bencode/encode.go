@@ -135,6 +135,7 @@ func isNilValue(v reflect.Value) bool {
 
 func readStruct(s structSlice, v reflect.Value) (err error) {
 	t := v.Type()
+	log.Info(t.NumField())
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		fieldValue := v.FieldByIndex(f.Index)
