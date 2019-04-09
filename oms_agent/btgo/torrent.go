@@ -4,6 +4,7 @@ import (
 	"../btgo/bencode"
 	"../utils"
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -75,7 +76,7 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 		}
 	}
 	var err error
-	log.Infof("%s", metaInfo)
+	log.Infof("%s", json.Marshal(metaInfo))
 	t.MetaInfo, err = bencode.Marshal(metaInfo)
 	log.Error(err)
 	return t
