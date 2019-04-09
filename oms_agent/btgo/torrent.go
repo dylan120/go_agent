@@ -1,6 +1,7 @@
 package btgo
 
 import (
+	"../btgo/bencode"
 	"../utils"
 	"crypto/sha1"
 	"fmt"
@@ -29,7 +30,7 @@ type MetaInfo struct {
 }
 
 type Torrent struct {
-	MetaInfo MetaInfo
+	MetaInfo []byte
 }
 
 func (info *Info) GenPieces(f string) {
@@ -72,7 +73,7 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			}
 		}
 	}
-
+	t.MetaInfo, _ = bencode.Marshal(metaInfo)
 	return t
 
 }
