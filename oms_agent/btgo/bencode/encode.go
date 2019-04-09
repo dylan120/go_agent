@@ -100,7 +100,7 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 	case reflect.Struct:
 		e.write("d")
 		s := make(structSlice, 0, v.NumField())
-		err = readStruct(s, v)
+		s, err = readStruct(s, v)
 		if !utils.CheckError(err) {
 			sort.Sort(s)
 			log.Info(s)
@@ -133,9 +133,9 @@ func isNilValue(v reflect.Value) bool {
 		v.IsNil()
 }
 
-func readStruct(s structSlice, v reflect.Value) (err error) {
+func readStruct(s structSlice, v reflect.Value) (structSlice, error) {
 	t := v.Type()
-
+	var err error
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		fieldValue := v.FieldByIndex(f.Index)
@@ -157,14 +157,13 @@ func readStruct(s structSlice, v reflect.Value) (err error) {
 		}
 
 		if f.Type.Kind() == reflect.Struct && tagValue == "" {
-			err = readStruct(s, fieldValue)
+			s, err = readStruct(s, fieldValue)
 		} else {
-
 			s = append(s, structDict{f.Name, fieldValue})
 			log.Info(s)
 		}
 	}
-	return err
+	return s, err
 }
 
 func (e *Encoder) decode() {
