@@ -156,7 +156,7 @@ func readStruct(s structSlice, v reflect.Value) (err error) {
 			//TODO
 		}
 
-		if f.Anonymous && f.Type.Kind() == reflect.Struct && tagValue == "" {
+		if f.Type.Kind() == reflect.Struct && tagValue == "" {
 			err = readStruct(s, fieldValue)
 		} else {
 			s = append(s, structDict{f.Name, fieldValue})
