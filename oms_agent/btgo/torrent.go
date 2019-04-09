@@ -58,6 +58,7 @@ func (info *Info) GenPieces(f string) {
 func NewTorrent(jid string, files []string) (t *Torrent) {
 	info := Info{Name: jid, PieceLength: PieceLength}
 	metaInfo := MetaInfo{Info: info, Announce: "http://test.com/"}
+	log.Info(files)
 	for _, f := range files {
 		fi, err := os.Stat(f)
 		if !utils.CheckError(err) {
