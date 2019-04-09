@@ -76,7 +76,8 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 		}
 	}
 	var err error
-	log.Infof("%s", json.Marshal(metaInfo))
+	s, _ := json.Marshal(metaInfo)
+	log.Infof("%s", s)
 	t.MetaInfo, err = bencode.Marshal(metaInfo)
 	log.Error(err)
 	return t
