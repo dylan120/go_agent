@@ -5,6 +5,7 @@ import (
 	"../utils"
 	"crypto/sha1"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -73,7 +74,9 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			}
 		}
 	}
-	t.MetaInfo, _ = bencode.Marshal(metaInfo)
+	var err error
+	t.MetaInfo, err = bencode.Marshal(metaInfo)
+	log.Error(err)
 	return t
 
 }
