@@ -91,12 +91,57 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 			e.write("e")
 		}
 
-	//case reflect.Struct:
+	case reflect.Struct:
+		e.write("d")
+		s := make(structSlice, 0, v.Type().NumField())
+		readStruct(s, v)
+		sort.Sort(s)
+		for _, val := range s {
+			e.encode(val.value)
+		}
+		e.write("e")
 
 	case reflect.Interface:
 		e.encode(v.Elem())
 	}
 
+	return err
+}
+
+type structDict struct {
+	key   string
+	value reflect.Value
+}
+type structSlice []structDict
+
+func (s structSlice) Len() int           { return len(s) }
+func (s structSlice) Less(i, j int) bool { return s[i].key < s[j].key }
+func (s structSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+func readStruct(s structSlice, v reflect.Value) (err error) {
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		fieldValue := v.FieldByIndex(f.Index)
+		if !fieldValue.CanInterface() { //unexported value
+			continue
+		}
+		if fieldValue.IsNil() { //nil value
+			continue
+		}
+		tagValue := f.Tag.Get("bencode")
+		if tagValue != "" {
+			if tagValue == "-" {
+				continue
+			}
+			//TODO
+		}
+		if f.Anonymous && f.Type.Kind() == reflect.Struct && tagValue == "" {
+			err = readStruct(s, fieldValue)
+		} else {
+			s = append(s, structDict{f.Name, fieldValue})
+		}
+	}
 	return err
 }
 
