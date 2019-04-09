@@ -67,11 +67,7 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: f})
 				log.Info(f)
 				metaInfo.Info.GenPieces(f)
-				tfile, err := os.Create(jid + ".torrent")
-				if !utils.CheckError(err) {
-					defer tfile.Close()
 
-				}
 			default:
 				fmt.Println("directory")
 			}
@@ -80,10 +76,10 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 	s, _ := json.Marshal(metaInfo)
 	log.Infof("%s", s)
 	x, _ := bencode.Marshal(metaInfo)
-	f, err := os.Open(jid)
-	defer f.Close()
+	tfile, err := os.Create(jid + ".torrent")
 	if !utils.CheckError(err) {
-		f.Write(x)
+		defer tfile.Close()
+		tfile.Write(x)
 	}
 	log.Errorf("%s", string(x))
 	return t
