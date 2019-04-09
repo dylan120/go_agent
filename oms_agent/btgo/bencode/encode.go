@@ -103,7 +103,6 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		s, err = readStruct(s, v)
 		if !utils.CheckError(err) {
 			sort.Sort(s)
-			log.Info(s)
 			for _, val := range s {
 				e.encode(val.value)
 			}
@@ -139,7 +138,6 @@ func readStruct(s structSlice, v reflect.Value) (structSlice, error) {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		fieldValue := v.FieldByIndex(f.Index)
-		log.Info(fieldValue)
 		if !fieldValue.CanInterface() { //unexported value
 			continue
 		}
@@ -147,8 +145,7 @@ func readStruct(s structSlice, v reflect.Value) (structSlice, error) {
 			continue
 		}
 		tagValue := f.Tag.Get("bencode")
-		log.Info(tagValue)
-		log.Info(f.Anonymous)
+
 		if tagValue != "" {
 			if tagValue == "-" {
 				continue
