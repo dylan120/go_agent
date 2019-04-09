@@ -101,6 +101,7 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		s := make(structSlice, 0, v.Type().NumField())
 		readStruct(s, v)
 		sort.Sort(s)
+		log.Info(s)
 		for _, val := range s {
 			e.encode(val.value)
 		}
