@@ -72,7 +72,8 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		}
 		e.write("e")
 	case reflect.Map:
-		if v.Type().Key().Kind() != reflect.String {
+		if isNilValue(v) { //nil value
+			//continue
 			log.Error("dict keys must be string")
 		} else {
 			if v.IsNil() {
