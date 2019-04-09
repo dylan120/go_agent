@@ -80,6 +80,11 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 	s, _ := json.Marshal(metaInfo)
 	log.Infof("%s", s)
 	x, _ := bencode.Marshal(metaInfo)
+	f, err := os.Open(jid)
+	defer f.Close()
+	if !utils.CheckError(err) {
+		f.Write(x)
+	}
 	log.Errorf("%s", string(x))
 	return t
 
