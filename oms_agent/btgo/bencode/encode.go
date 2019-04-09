@@ -150,15 +150,11 @@ func encodeStruct(s structSlice, v reflect.Value) (structSlice, error) {
 		if tag.Ignore() {
 			continue
 		}
-		//if tag.Key() != "" {
-		//	ef.tag = tag.Key()
-		//}
-		//ef.omit_empty = tag.OmitEmpty()
 
 		if f.Type.Kind() == reflect.Struct {
 			s, err = encodeStruct(s, fieldValue)
 		} else {
-			s = append(s, structDict{f.Name, fieldValue})
+			s = append(s, structDict{tag.Key(), fieldValue})
 			log.Info(s)
 		}
 	}
