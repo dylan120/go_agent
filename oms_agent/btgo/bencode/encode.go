@@ -99,7 +99,7 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 
 	case reflect.Struct:
 		e.write("d")
-		s := make(structSlice, 0, v.Type().NumField())
+		s := make(structSlice, 0, v.NumField())
 		err = readStruct(s, v)
 		if !utils.CheckError(err) {
 			sort.Sort(s)
