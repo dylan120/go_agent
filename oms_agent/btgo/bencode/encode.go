@@ -85,12 +85,11 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		}
 	case reflect.Slice, reflect.Array:
 		if v.Type().Elem().Kind() == reflect.Uint8 {
-
 			s := v.Bytes()
 			log.Info(s)
-			e.write(fmt.Sprintf("%d:", len(s)))
-			log.Println(fmt.Sprintf("%s:", s))
-			e.w.Write(s)
+			e.write(fmt.Sprintf("%d:%s", len(s), s))
+			//log.Println(fmt.Sprintf("%s:", s))
+			//e.w.Write(s)
 			break
 		}
 		if v.IsNil() {

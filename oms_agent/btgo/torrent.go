@@ -41,7 +41,7 @@ func (info *Info) GenPieces(f string) {
 	if !utils.CheckError(err) {
 		for {
 			h := sha1.New()
-			//file.Seek(info.PieceLength, 0)
+			file.Seek(info.PieceLength-1, 0)
 			n, err := file.Read(buf)
 
 			if err != nil {
