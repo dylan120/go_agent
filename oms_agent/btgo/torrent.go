@@ -66,7 +66,7 @@ func (info *Info) GenPieces(f string) {
 func NewTorrent(jid string, files []string) (t *Torrent) {
 	info := Info{Name: jid, PieceLength: PieceLength}
 	metaInfo := MetaInfo{Info: info, Announce: "http://test.com/"}
-	var pieces []byte
+	//var pieces []byte
 	for _, f := range files {
 		fi, err := os.Stat(f)
 		if !utils.CheckError(err) {
@@ -81,7 +81,7 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			}
 		}
 	}
-	metaInfo.Info.Pieces = pieces
+	//metaInfo.Info.Pieces = pieces
 	s, _ := json.Marshal(metaInfo)
 	log.Infof("%s", s)
 	x, _ := bencode.Marshal(metaInfo)
