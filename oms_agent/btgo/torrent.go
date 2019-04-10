@@ -43,12 +43,12 @@ func (info *Info) GenPieces(f string) (pieces []byte) {
 			h := sha1.New()
 			//file.Seek(info.PieceLength, 0)
 			n, err := file.Read(buf)
-			if err == io.EOF {
-				break
+
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
 			}
-			//if n == 0 {
-			//	break
-			//}
 			h.Write(buf)
 			//info.Pieces = h.Sum(info.Pieces)
 			pieces = h.Sum(pieces)
