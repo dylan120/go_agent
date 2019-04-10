@@ -85,7 +85,9 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		}
 	case reflect.Slice, reflect.Array:
 		if v.Type().Elem().Kind() == reflect.Uint8 {
+
 			s := v.Bytes()
+			log.Info(s)
 			e.write(fmt.Sprintf("%d:%s", len(s), s))
 			break
 		}
