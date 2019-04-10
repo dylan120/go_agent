@@ -89,6 +89,7 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 			s := v.Bytes()
 			log.Info(s)
 			e.write(fmt.Sprintf("%d:", len(s)))
+			log.Println(fmt.Sprintf("%s:", s))
 			e.w.Write(s)
 			break
 		}
