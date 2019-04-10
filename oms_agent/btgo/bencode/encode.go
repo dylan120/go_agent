@@ -152,12 +152,13 @@ func encodeStruct(s structSlice, v reflect.Value) (structSlice, error) {
 			continue
 		}
 
-		if f.Type.Kind() == reflect.Struct {
-			s, err = encodeStruct(s, fieldValue)
-		} else {
-			s = append(s, structDict{tag.Key(), fieldValue})
-			log.Info(s)
-		}
+		//if f.Type.Kind() == reflect.Struct {
+		//	s, err = encodeStruct(s, fieldValue)
+		//} else {
+		//	s = append(s, structDict{tag.Key(), fieldValue})
+		//	log.Info(s)
+		//}
+		s = append(s, structDict{tag.Key(), fieldValue})
 	}
 	return s, err
 }
