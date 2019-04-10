@@ -88,7 +88,8 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 
 			s := v.Bytes()
 			log.Info(s)
-			e.write(fmt.Sprintf("%d:%s", len(s), s))
+			e.write(fmt.Sprintf("%d:", len(s)))
+			e.w.Write(s)
 			break
 		}
 		if v.IsNil() {
