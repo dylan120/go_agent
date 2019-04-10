@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
 )
 
@@ -40,8 +41,11 @@ func (info *Info) GenPieces(f string) (pieces []byte) {
 	if !utils.CheckError(err) {
 		for {
 			h := sha1.New()
-			file.Seek(info.PieceLength, 0)
-			n, _ := file.Read(buf)
+			//file.Seek(info.PieceLength, 0)
+			n, err := file.Read(buf)
+			if err == io.EOF {
+				break
+			}
 			if n == 0 {
 				break
 			}
