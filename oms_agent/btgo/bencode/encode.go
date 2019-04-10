@@ -104,6 +104,7 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		if !utils.CheckError(err) {
 			sort.Sort(s)
 			for _, val := range s {
+				e.write(fmt.Sprintf("%d:%s", len(val.key), val.key))
 				e.encode(val.value)
 			}
 		}
