@@ -36,10 +36,9 @@ type Torrent struct {
 
 func (info *Info) GenPieces(f string) (pieces []byte) {
 	file, err := os.Open(f)
-
+	buf := make([]byte, info.PieceLength)
 	if !utils.CheckError(err) {
 		for {
-			buf := make([]byte, info.PieceLength)
 			h := sha1.New()
 			file.Seek(info.PieceLength, 0)
 			n, _ := file.Read(buf)
