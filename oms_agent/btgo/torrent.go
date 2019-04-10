@@ -34,43 +34,47 @@ type Torrent struct {
 	MetaInfo []byte
 }
 
-func (info *Info) GenPieces(f string) {
+func (info *Info) GenPieces(f string) (pieces []byte) {
 	file, err := os.Open(f)
 
 	if !utils.CheckError(err) {
 		buf := make([]byte, info.PieceLength)
 		h := sha1.New()
+
 		for {
 			file.Seek(info.PieceLength, 0)
 			n, _ := file.Read(buf)
 			h.Write(buf)
-			info.Pieces = h.Sum(info.Pieces)
+			//info.Pieces = h.Sum(info.Pieces)
+			pieces = h.Sum(pieces)
 			if int64(n) < info.PieceLength {
 				break
 			}
 		}
 
 	}
+	return pieces
 
 }
 
 func NewTorrent(jid string, files []string) (t *Torrent) {
 	info := Info{Name: jid, PieceLength: PieceLength}
 	metaInfo := MetaInfo{Info: info, Announce: "http://test.com/"}
-
+	var pieces []byte
 	for _, f := range files {
 		fi, err := os.Stat(f)
 		if !utils.CheckError(err) {
 			switch mode := fi.Mode(); {
 			case mode.IsRegular():
 				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: f})
-				metaInfo.Info.GenPieces(f)
+				pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
 
 			default:
 				fmt.Println("directory")
 			}
 		}
 	}
+	metaInfo.Info.Pieces = pieces
 	s, _ := json.Marshal(metaInfo)
 	log.Infof("%s", s)
 	x, _ := bencode.Marshal(metaInfo)
