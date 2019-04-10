@@ -38,10 +38,9 @@ func (info *Info) GenPieces(f string) (pieces []byte) {
 	file, err := os.Open(f)
 
 	if !utils.CheckError(err) {
-		buf := make([]byte, info.PieceLength)
-		h := sha1.New()
-
 		for {
+			buf := make([]byte, info.PieceLength)
+			h := sha1.New()
 			file.Seek(info.PieceLength, 0)
 			n, _ := file.Read(buf)
 			h.Write(buf)
