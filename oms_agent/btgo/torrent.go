@@ -35,7 +35,7 @@ type Torrent struct {
 	MetaInfo []byte
 }
 
-func (info *Info) GenPieces(f string) (pieces []byte) {
+func (info *Info) GenPieces(f string) {
 	file, err := os.Open(f)
 	buf := make([]byte, info.PieceLength)
 	if !utils.CheckError(err) {
@@ -50,16 +50,16 @@ func (info *Info) GenPieces(f string) (pieces []byte) {
 				}
 			}
 			h.Write(buf)
-			//info.Pieces = h.Sum(info.Pieces)
-			pieces = h.Sum(pieces)
-			log.Info(pieces)
+			info.Pieces = h.Sum(info.Pieces)
+			//pieces = h.Sum(pieces)
+			//log.Info(pieces)
 			if int64(n) < info.PieceLength {
 				break
 			}
 		}
 
 	}
-	return pieces
+	//return pieces
 
 }
 
@@ -73,7 +73,8 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			switch mode := fi.Mode(); {
 			case mode.IsRegular():
 				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: f})
-				pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
+				//pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
+				metaInfo.Info.GenPieces(f)
 
 			default:
 				fmt.Println("directory")
