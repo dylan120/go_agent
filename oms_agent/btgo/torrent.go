@@ -46,9 +46,9 @@ func (info *Info) GenPieces(f string) (pieces []byte) {
 			if err == io.EOF {
 				break
 			}
-			if n == 0 {
-				break
-			}
+			//if n == 0 {
+			//	break
+			//}
 			h.Write(buf)
 			//info.Pieces = h.Sum(info.Pieces)
 			pieces = h.Sum(pieces)
