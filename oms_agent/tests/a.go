@@ -35,5 +35,5 @@ func initLog(debugLevel bool) {
 func main() {
 	initLog(true)
 	BencodeTest()
-	fmt.Println(btgo.NewTorrent("1", []string{"/tmp/test_1_1_1"}))
+	fmt.Println(btgo.NewTorrent("1", []string{"/tmp/44e67cf3-4c48-4e41-a8ee-a781adfd97cd_1_1_0.sh"}))
 }
