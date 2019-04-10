@@ -35,31 +35,38 @@ type Torrent struct {
 	MetaInfo []byte
 }
 
-func (info *Info) GenPieces(f string) {
-	file, err := os.Open(f)
-	buf := make([]byte, info.PieceLength)
-	if !utils.CheckError(err) {
-		for {
-			h := sha1.New()
-			//file.Seek(info.PieceLength-1, 0)
-			n, err := file.Read(buf)
+func (info *Info) GenPieces(files []File) {
+	var pieces []byte
+	for _, f := range files {
+		fi, err := os.Open(f.Path)
+		//pr, pw := io.Pipe()
+		//wn, err := io.CopyN(pw, fi, f.Length)
+		fi.Close()
 
-			if err != nil {
-				if err == io.EOF {
+		buf := make([]byte, info.PieceLength)
+		if !utils.CheckError(err) {
+			for {
+				h := sha1.New()
+				//file.Seek(info.PieceLength-1, 0)
+				n, err := fi.Read(buf)
+
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+				}
+				h.Write(buf)
+				//info.Pieces = h.Sum(info.Pieces)
+				pieces = h.Sum(pieces)
+				//log.Info(pieces)
+				if int64(n) < info.PieceLength {
 					break
 				}
 			}
-			h.Write(buf)
-			info.Pieces = h.Sum(info.Pieces)
-			//pieces := h.Sum(nil)
-			//log.Info(pieces)
-			if int64(n) < info.PieceLength {
-				break
-			}
-		}
 
+		}
 	}
-	//return pieces
+	info.Pieces = pieces
 
 }
 
@@ -74,7 +81,7 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			case mode.IsRegular():
 				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: f})
 				//pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
-				metaInfo.Info.GenPieces(f)
+				metaInfo.Info.GenPieces(metaInfo.Info.Files)
 
 			default:
 				fmt.Println("directory")
