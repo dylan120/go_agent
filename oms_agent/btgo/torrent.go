@@ -50,9 +50,9 @@ func (info *Info) GenPieces(f string) {
 				}
 			}
 			h.Write(buf)
-			//info.Pieces = h.Sum(info.Pieces)
-			pieces := h.Sum(nil)
-			log.Info(pieces)
+			info.Pieces = h.Sum(info.Pieces)
+			//pieces := h.Sum(nil)
+			//log.Info(pieces)
 			if int64(n) < info.PieceLength {
 				break
 			}
