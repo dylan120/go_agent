@@ -104,6 +104,9 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		if !utils.CheckError(err) {
 			sort.Sort(s)
 			for _, val := range s {
+				if val.omit_empty && isNilValue(val.value) {
+					continue
+				}
 				e.write(fmt.Sprintf("%d:%s", len(val.key), val.key))
 				e.encode(val.value)
 			}
@@ -119,8 +122,9 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 }
 
 type structDict struct {
-	key   string
-	value reflect.Value
+	key        string
+	value      reflect.Value
+	omit_empty bool
 }
 type structSlice []structDict
 
@@ -158,7 +162,7 @@ func encodeStruct(s structSlice, v reflect.Value) (structSlice, error) {
 		//	s = append(s, structDict{tag.Key(), fieldValue})
 		//	log.Info(s)
 		//}
-		s = append(s, structDict{tag.Key(), fieldValue})
+		s = append(s, structDict{key: tag.Key(), value: fieldValue, omit_empty: tag.OmitEmpty()})
 	}
 	return s, err
 }
