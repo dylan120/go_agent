@@ -52,6 +52,7 @@ func (info *Info) GenPieces(f string) (pieces []byte) {
 			h.Write(buf)
 			//info.Pieces = h.Sum(info.Pieces)
 			pieces = h.Sum(pieces)
+			log.Info(pieces)
 			if int64(n) < info.PieceLength {
 				break
 			}
