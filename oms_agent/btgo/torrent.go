@@ -13,22 +13,21 @@ import (
 const PieceLength = 256 * 1024 //256KB
 
 type File struct {
-	Length int64
-	Path   string
+	Length int64  `bencode:"length"`
+	Path   string `bencode:"path"`
 }
 
 type Info struct {
-	Name        string
-	PieceLength int64
-	Pieces      []byte
-	Length      int64 `bencode:"omitempty"`
-	//Path        string `bencode:"path,omitempty"`
-	Files []File `bencode:"omitempty"`
+	Name        string `bencode:"name"`
+	PieceLength int64  `bencode:"piece length"`
+	Pieces      []byte `bencode:"pieces"`
+	Length      int64  `bencode:"length,omitempty"`
+	Files       []File `bencode:"files,omitempty"`
 }
 
 type MetaInfo struct {
-	Announce string
-	Info     Info
+	Announce string `bencode:"announce"`
+	Info     Info   `bencode:"info"`
 }
 
 type Torrent struct {
@@ -65,7 +64,6 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			switch mode := fi.Mode(); {
 			case mode.IsRegular():
 				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: f})
-				log.Info(f)
 				metaInfo.Info.GenPieces(f)
 
 			default:
