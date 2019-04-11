@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 const PieceLength = 256 * 1024 //256KB
@@ -28,8 +29,11 @@ type Info struct {
 }
 
 type MetaInfo struct {
-	Announce string `bencode:"announce"`
-	Info     Info   `bencode:"info"`
+	Announce     string `bencode:"announce"`
+	Info         Info   `bencode:"info"`
+	CreationDate int64  `bencode:"creation date,omitempty"`
+	Comment      string `bencode:"comment,omitempty"`
+	CreatedBy    string `bencode:"created by,omitempty"`
 }
 
 type Torrent struct {
@@ -74,7 +78,12 @@ func (info *Info) GenPieces(files []File) {
 
 func NewTorrent(jid string, files []string) (t *Torrent) {
 	info := Info{Name: jid, PieceLength: PieceLength}
-	metaInfo := MetaInfo{Info: info, Announce: ""}
+	metaInfo := MetaInfo{
+		Info:         info,
+		Announce:     "",
+		Comment:      "yoloham",
+		CreatedBy:    "github.com/anacrolix/torrent",
+		CreationDate: time.Now().Unix()}
 	//var pieces []byte
 	for _, f := range files {
 		fi, err := os.Stat(f)
