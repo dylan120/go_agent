@@ -9,13 +9,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 const PieceLength = 256 * 1024 //256KB
 
 type File struct {
-	Length int64  `bencode:"length"`
-	Path   string `bencode:"path"`
+	Length int64    `bencode:"length"`
+	Path   []string `bencode:"path"`
 }
 
 type Info struct {
@@ -38,7 +40,7 @@ type Torrent struct {
 func (info *Info) GenPieces(files []File) {
 	var pieces []byte
 	for _, f := range files {
-		fi, err := os.Open(f.Path)
+		fi, err := os.Open(strings.Join(f.Path, "/"))
 		//pr, pw := io.Pipe()
 		//wn, err := io.CopyN(pw, fi, f.Length)
 		fi.Close()
