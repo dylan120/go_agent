@@ -16,14 +16,6 @@ func (p sortValues) Len() int           { return len(p) }
 func (p sortValues) Less(i, j int) bool { return p[i].String() < p[j].String() }
 func (p sortValues) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-//type Marshaler interface {
-//	MarshalBencode() ([]byte, error)
-//}
-//
-//type Unmarshaler interface {
-//	UnmarshalBencode([]byte) error
-//}
-
 type Encoder struct {
 	w    io.Writer
 	data [64]byte

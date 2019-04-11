@@ -71,8 +71,8 @@ func (info *Info) GenPieces(files []File) {
 
 		}
 	}
-	log.Println(string(pieces))
-	//info.Pieces = pieces
+	//log.Println(string(pieces))
+	info.Pieces = pieces
 
 }
 
@@ -81,8 +81,8 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 	metaInfo := MetaInfo{
 		Info:         info,
 		Announce:     "",
-		Comment:      "yoloham",
-		CreatedBy:    "github.com/anacrolix/torrent",
+		Comment:      "",
+		CreatedBy:    "go agent",
 		CreationDate: time.Now().Unix()}
 	//var pieces []byte
 	for _, f := range files {
