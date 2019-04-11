@@ -67,7 +67,7 @@ func (info *Info) GenPieces(files []File) {
 		}
 	}
 	log.Println(string(pieces))
-	info.Pieces = pieces
+	//info.Pieces = pieces
 
 }
 
