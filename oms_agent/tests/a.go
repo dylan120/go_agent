@@ -36,5 +36,6 @@ func main() {
 	initLog(true)
 	BencodeTest()
 	//fmt.Println(btgo.NewTorrent("1", []string{"/tmp/44e67cf3-4c48-4e41-a8ee-a781adfd97cd_1_1_0.sh"}))
-	fmt.Println(btgo.NewTorrent("1", []string{"/opt/soft/go1.11.4.linux-amd64.tar.gz"}, []string{"http://192.168.0.206:8760/announce"}))
+	fmt.Println(btgo.NewTorrent("1",
+		[]string{"/opt/soft/go1.11.4.linux-amd64.tar.gz"}, [][]string{{"http://192.168.0.206:8760/announce"}}))
 }

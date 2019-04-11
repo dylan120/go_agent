@@ -31,11 +31,11 @@ type Info struct {
 }
 
 type MetaInfo struct {
-	AnnounceList []string `bencode:"announce-list"`
-	Info         Info     `bencode:"info"`
-	CreationDate int64    `bencode:"creation date,omitempty"`
-	Comment      string   `bencode:"comment,omitempty"`
-	CreatedBy    string   `bencode:"created by,omitempty"`
+	AnnounceList [][]string `bencode:"announce-list"`
+	Info         Info       `bencode:"info"`
+	CreationDate int64      `bencode:"creation date,omitempty"`
+	Comment      string     `bencode:"comment,omitempty"`
+	CreatedBy    string     `bencode:"created by,omitempty"`
 }
 
 type Torrent struct {
@@ -70,7 +70,7 @@ func (info *Info) GenPieces(files []File) {
 
 }
 
-func NewTorrent(jid string, files []string, announceList []string) (t *Torrent) {
+func NewTorrent(jid string, files []string, announceList [][]string) (t *Torrent) {
 	info := Info{Name: jid, PieceLength: PieceLength}
 	metaInfo := MetaInfo{
 		Info:         info,
