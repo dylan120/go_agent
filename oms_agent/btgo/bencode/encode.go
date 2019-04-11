@@ -20,6 +20,10 @@ type Marshaler interface {
 	MarshalBencode() ([]byte, error)
 }
 
+type Unmarshaler interface {
+	UnmarshalBencode([]byte) error
+}
+
 type Encoder struct {
 	w    io.Writer
 	data [64]byte
