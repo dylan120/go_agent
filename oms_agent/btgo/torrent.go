@@ -53,7 +53,7 @@ func (info *Info) GenPieces(files []File) {
 		if !utils.CheckError(err) {
 			for {
 				h := sha1.New()
-				_, err := fi.Read(buf)
+				n, err := fi.Read(buf)
 				if err != nil {
 					if err == io.EOF {
 						break
@@ -61,7 +61,7 @@ func (info *Info) GenPieces(files []File) {
 				}
 				h.Write(buf)
 				pieces = h.Sum(pieces)
-				//log.Println(n)
+				log.Println(n)
 				//if int64(n) < info.PieceLength {
 				//	break
 				//}

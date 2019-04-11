@@ -125,7 +125,6 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		if !utils.CheckError(err) {
 			sort.Sort(s)
 			for _, val := range s {
-				log.Info(isNilValue(val.value))
 				if val.omit_empty && IsEmptyValue(val.value) {
 					continue
 				}
