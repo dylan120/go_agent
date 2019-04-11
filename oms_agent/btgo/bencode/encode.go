@@ -80,8 +80,6 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			s := v.Bytes()
 			e.write(fmt.Sprintf("%d:%s", len(s), s))
-			//e.write(fmt.Sprintf("%d:", len(s)))
-			//e.w.Write(s)
 			break
 		}
 		if v.IsNil() {
@@ -200,8 +198,4 @@ func Marshal(v interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
-}
-
-func Unmarshal(d []byte) (err error) {
-	return err
 }
