@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -90,7 +91,9 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 		if !utils.CheckError(err) {
 			switch mode := fi.Mode(); {
 			case mode.IsRegular():
-				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: []string{f}})
+				dirName := filepath.Dir(f)
+				fileName := filepath.Base(f)
+				metaInfo.Info.Files = append(metaInfo.Info.Files, File{Length: fi.Size(), Path: []string{dirName, fileName}})
 				//pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
 				metaInfo.Info.GenPieces(metaInfo.Info.Files)
 
