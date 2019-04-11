@@ -93,11 +93,16 @@ func NewTorrent(jid string, files []string) (t *Torrent) {
 			case mode.IsRegular():
 				//dirName := filepath.Dir(f)
 				//fileName := filepath.Base(f)
-				//relPath, err := filepath.Rel(root, path)
-				metaInfo.Info.Files = append(
-					metaInfo.Info.Files, File{Length: fi.Size(), Path: strings.Split(f, string(filepath.Separator))})
-				//pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
-				metaInfo.Info.GenPieces(metaInfo.Info.Files)
+				relPath, err := filepath.Rel("/", f)
+				if !utils.CheckError(err) {
+					metaInfo.Info.Files = append(
+						metaInfo.Info.Files,
+						File{
+							Length: fi.Size(),
+							Path:   strings.Split(relPath, string(filepath.Separator))})
+					//pieces = append(pieces, metaInfo.Info.GenPieces(f)...)
+					metaInfo.Info.GenPieces(metaInfo.Info.Files)
+				}
 
 			default:
 				fmt.Println("directory")
