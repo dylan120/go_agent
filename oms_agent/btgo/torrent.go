@@ -44,7 +44,9 @@ type Torrent struct {
 func (info *Info) GenPieces(files []File) {
 	var pieces []byte
 	for _, f := range files {
-		fi, err := os.Open(strings.Join(f.Path, "/"))
+		path := append([]string{"/"}, f.Path...)
+		fi, err := os.Open(
+			filepath.Join(path...))
 		//pr, pw := io.Pipe()
 		//wn, err := io.CopyN(pw, fi, f.Length)
 		fi.Close()
