@@ -3,6 +3,7 @@ package btgo
 import (
 	"../btgo/bencode"
 	"../utils"
+	"bufio"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
@@ -47,14 +48,13 @@ func (info *Info) GenPieces(files []File) {
 		path := append([]string{"/"}, f.Path...)
 		fi, err := os.Open(
 			filepath.Join(path...))
-		fi.Close()
+		defer fi.Close()
 
-		buf := make([]byte, info.PieceLength)
+		//buf := make([]byte, info.PieceLength)
 		if !utils.CheckError(err) {
-			for {
+			for buf, reader := make([]byte, info.PieceLength), bufio.NewReader(fi); ; {
 				h := sha1.New()
-				fi.Seek(info.PieceLength, 0)
-				n, err := fi.Read(buf)
+				n, err := reader.Read(buf)
 				if err != nil {
 					if err == io.EOF {
 						break
@@ -62,10 +62,9 @@ func (info *Info) GenPieces(files []File) {
 				}
 				h.Write(buf)
 				pieces = h.Sum(pieces)
-				log.Println(n)
-				//if int64(n) < info.PieceLength {
-				//	break
-				//}
+				if int64(n) < info.PieceLength {
+					break
+				}
 			}
 		}
 	}
