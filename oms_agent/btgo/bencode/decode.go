@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"reflect"
+	"strconv"
 )
 
 type Decoder struct {
@@ -26,11 +27,19 @@ func Unmarshal(data []byte, v interface{}) (err error) {
 }
 
 func (d *Decoder) readPeek(delim string) (b byte, err error) {
-	d.r.re
+	//d.r.re
 	return
 }
 
-func (d *Decoder) decodeDict(v reflect.Value) (err error) {
+func (d *Decoder) readNBytes(n int) (r []byte, err error) {
+	var b byte
+	for i := 0; i < n; i++ {
+		b, err = d.r.ReadByte()
+		if err != nil {
+			break
+		}
+		r = append(r, b)
+	}
 	return
 }
 
@@ -38,12 +47,43 @@ func (d *Decoder) decodeList(v reflect.Value) (err error) {
 	return
 }
 
-func (d *Decoder) decodeString(v reflect.Value) (err error) {
+func (d *Decoder) decodeInt(v reflect.Value) (err error) {
 	return
 }
 
-func (d *Decoder) decodeInt(v reflect.Value) (err error) {
-	d.
+func (d *Decoder) decodeString(v reflect.Value) (err error) {
+	data, err := d.r.ReadBytes(':')
+	if err != nil {
+		return err
+	}
+	data = data[0 : len(data)-1]
+	length, err := strconv.ParseInt(string(data), 10, 0)
+	d.readNBytes(int(length))
+	data = data[1:]
+	return
+}
+
+func (d *Decoder) decodeDict(v reflect.Value) (err error) {
+	//switch v.Kind(){
+	//case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	//	err = d.decodeInt(v)
+	//case reflect.String:
+	//	err = d.decodeString(v)
+	//case reflect.Slice,reflect.Array:
+	//	err = d.decodeList(v)
+	//case reflect.Map:
+	//	err = d.decodeDict(v)
+	//case reflect.Struct:
+	//	for i := 0; i < v.NumField(); i++ {
+	//		field := v.Field(i)
+	//		err = d.decode(reflect.ValueOf(field))
+	//	}
+	//}
+	d.r.ReadByte()
+	for {
+		v.F
+		d.decodeString(v)
+	}
 	return
 }
 
@@ -52,7 +92,6 @@ func (d *Decoder) decode(v reflect.Value) (err error) {
 	if err != nil {
 		return
 	}
-
 	switch ch[0] {
 	case 'i':
 		err = d.decodeInt(v)
