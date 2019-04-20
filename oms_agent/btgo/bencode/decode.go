@@ -4,15 +4,17 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"strconv"
 )
 
 type Decoder struct {
-	r *bufio.Reader
-	//raw   []byte
-	index int
+	r     *bufio.Reader
+	cache []byte
+	//m     map[string]reflect.Value
+	off int
 }
 
 func NewDecoder(r io.Reader) *Decoder {
@@ -23,11 +25,14 @@ func Unmarshal(data []byte, v interface{}) (err error) {
 	buf := bytes.NewBuffer(data)
 	d := NewDecoder(buf)
 	err = d.decode(reflect.ValueOf(v))
+	fmt.Println(len(d.cache))
 	return
 }
 
-func (d *Decoder) readPeek(delim string) (b byte, err error) {
-	//d.r.re
+func (d *Decoder) readCache(off int) (r []byte) {
+	r = d.cache[d.off:]
+	d.off = len(d.cache)
+	fmt.Println(d.off)
 	return
 }
 
@@ -43,44 +48,41 @@ func (d *Decoder) readNBytes(n int) (r []byte, err error) {
 	return
 }
 
-func (d *Decoder) readFull(b []byte) ([]byte, error) {
-	n, err := io.ReadFull(d.r, b)
-	if err != nil {
-
-	}
-}
-
-func (d *Decoder) decodeList(v reflect.Value) (err error) {
-	return
-}
-
 func (d *Decoder) decodeInt(v reflect.Value) (err error) {
+	data, err := d.r.ReadBytes('e')
+	if err != nil {
+		return err
+	}
+	s, err := strconv.ParseInt(string(data[1:len(data)-1]), 10, 0)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	v.SetInt(s)
+
 	return
 }
 
 func (d *Decoder) decodeString(v reflect.Value) (err error) {
 	data, err := d.r.ReadBytes(':')
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
-	data = data[0 : len(data)-1]
-	length, err := strconv.ParseInt(string(data), 10, 0)
-	d.readNBytes(int(length))
-	data = data[1:]
+	length, err := strconv.ParseInt(string(data[0:len(data)-1]), 10, 0)
+	s, err := d.readNBytes(int(length))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
+	d.cache = append(d.cache, s...)
 	switch v.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		err = d.decodeInt(v)
 	case reflect.String:
-		v.SetString(data)
-	case reflect.Slice, reflect.Array:
-		err = d.decodeList(v)
-	case reflect.Map:
-		err = d.decodeDict(v)
-	case reflect.Struct:
-		for i := 0; i < v.NumField(); i++ {
-			field := v.Field(i)
-			err = d.decode(reflect.ValueOf(field))
+		v.SetString(string(d.readCache(d.off)))
+	case reflect.Slice:
+		if v.Type().Elem().Kind() == reflect.Uint8 {
+			v.SetBytes(d.readCache(d.off))
 		}
 	}
 
@@ -88,6 +90,10 @@ func (d *Decoder) decodeString(v reflect.Value) (err error) {
 }
 
 func (d *Decoder) decodeDict(v reflect.Value) (err error) {
+	return
+}
+
+func (d *Decoder) decodeList(v reflect.Value) (err error) {
 	b, err := d.r.ReadByte()
 	if err != nil {
 		if b == 'e' {
@@ -95,8 +101,21 @@ func (d *Decoder) decodeDict(v reflect.Value) (err error) {
 			return err
 		}
 	}
-	for {
-		err = d.decodeString(v)
+
+	for i := 0; ; i++ {
+		ch, err := d.r.Peek(1)
+		if err != nil {
+			return err
+		}
+		if ch[0] == 'e' {
+			d.r.ReadByte()
+			break
+		}
+		if v.Kind() == reflect.Slice && i >= v.Len() {
+			v.Set(reflect.Append(v, reflect.Zero(v.Type().Elem())))
+		}
+
+		err = d.decode(v.Index(i))
 		if err != nil {
 			return err
 		}
@@ -104,23 +123,92 @@ func (d *Decoder) decodeDict(v reflect.Value) (err error) {
 	return
 }
 
+func (d *Decoder) getStrcuctMap(m map[string]reflect.Value, v reflect.Value) {
+	t := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		tfield := t.Field(i)
+		tag := getTag(tfield.Tag)
+		f := v.FieldByIndex(tfield.Index)
+		key := tag.Key()
+		if key == "" {
+			key = tfield.Name
+		}
+		m[key] = f
+	}
+}
+
+func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
+	b, err := d.r.ReadByte()
+	if err != nil {
+		if b == 'e' {
+			_, err := d.r.ReadByte()
+			return err
+		}
+	}
+	m := make(map[string]reflect.Value)
+	d.getStrcuctMap(m, v)
+	for {
+		ch, err := d.r.Peek(1)
+		if err != nil {
+			return err
+		}
+		if ch[0] == 'e' {
+			d.r.ReadByte()
+			break
+		}
+		err = d.decodeString(v)
+		mkey := string(d.readCache(d.off))
+		val, ok := m[mkey] //TODO
+		if ok {
+			err = d.decode(val)
+		}
+
+	}
+	return
+}
+
+func (d *Decoder) indirect(v reflect.Value) reflect.Value {
+	for {
+		if v.Kind() == reflect.Interface && !v.IsNil() {
+			e := v.Elem()
+			if e.Kind() == reflect.Ptr && !e.IsNil() {
+				v = e
+				continue
+			}
+		}
+
+		if v.Kind() != reflect.Ptr {
+			break
+		}
+		if v.Elem().Kind() != reflect.Ptr && v.CanSet() {
+
+			break
+		}
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+	return v
+}
+
 func (d *Decoder) decode(v reflect.Value) (err error) {
+	val := d.indirect(v)
 	ch, err := d.r.Peek(1)
 	if err != nil {
 		return
 	}
 	switch ch[0] {
 	case 'i':
-		err = d.decodeInt(v)
+		err = d.decodeInt(val)
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		err = d.decodeString(v)
+		err = d.decodeString(val)
 	case 'l':
-		err = d.decodeList(v)
+		err = d.decodeList(val)
 	case 'd':
-		err = d.decodeDict(v)
+		err = d.decodeStruct(val)
 	default:
-		err = errors.New("Invalid input")
+		err = errors.New("invalid input")
 	}
-
 	return
 }
