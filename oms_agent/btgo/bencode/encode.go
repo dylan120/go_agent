@@ -1,7 +1,6 @@
 package bencode
 
 import (
-	"../../utils"
 	"bytes"
 	"fmt"
 	log "github.com/sirupsen/logrus"
@@ -120,15 +119,16 @@ func (e *Encoder) encode(v reflect.Value) (err error) {
 		e.write("d")
 		s := make(structSlice, 0, v.NumField())
 		s, err = encodeStruct(s, v)
-		if !utils.CheckError(err) {
-			sort.Sort(s)
-			for _, val := range s {
-				if val.omit_empty && IsEmptyValue(val.value) {
-					continue
-				}
-				e.write(fmt.Sprintf("%d:%s", len(val.key), val.key))
-				e.encode(val.value)
+		if err != nil {
+			return
+		}
+		sort.Sort(s)
+		for _, val := range s {
+			if val.omit_empty && IsEmptyValue(val.value) {
+				continue
 			}
+			e.write(fmt.Sprintf("%d:%s", len(val.key), val.key))
+			e.encode(val.value)
 		}
 
 		e.write("e")

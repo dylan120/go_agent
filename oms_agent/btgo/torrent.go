@@ -2,7 +2,6 @@ package btgo
 
 import (
 	"../btgo/bencode"
-	"../utils"
 	"bufio"
 	"crypto/sha1"
 	"encoding/json"
@@ -39,38 +38,42 @@ type MetaInfo struct {
 }
 
 type Torrent struct {
-	MetaInfo []byte
+	MetaInfo MetaInfo
 }
 
-func (info *Info) GenPieces(files []File) {
-	var pieces []byte
+func (info *Info) GenPieces(files []File) (err error) {
+	var (
+		fi     *os.File
+		pieces []byte
+	)
 	for _, f := range files {
 		path := append([]string{"/"}, f.Path...)
-		fi, err := os.Open(
+		fi, err = os.Open(
 			filepath.Join(path...))
 		defer fi.Close()
-		if !utils.CheckError(err) {
-			for buf, reader := make([]byte, info.PieceLength), bufio.NewReader(fi); ; {
-				h := sha1.New()
-				n, err := reader.Read(buf)
-				if err != nil {
-					if err == io.EOF {
-						break
-					}
-				}
-				h.Write(buf)
-				pieces = h.Sum(pieces)
-				if int64(n) < info.PieceLength {
+		if err != nil {
+			return
+		}
+		for buf, reader := make([]byte, info.PieceLength), bufio.NewReader(fi); ; {
+			h := sha1.New()
+			n, err := reader.Read(buf)
+			if err != nil {
+				if err == io.EOF {
 					break
 				}
+			}
+			h.Write(buf)
+			pieces = h.Sum(pieces)
+			if int64(n) < info.PieceLength {
+				break
 			}
 		}
 	}
 	info.Pieces = pieces
-
+	return
 }
 
-func NewTorrent(jid string, files []string, announceList [][]string) (t *Torrent) {
+func NewTorrent(jid string, files []string, announceList [][]string) (t *Torrent, err error) {
 	info := Info{Name: jid, PieceLength: PieceLength}
 	metaInfo := MetaInfo{
 		Info:         info,
@@ -80,33 +83,65 @@ func NewTorrent(jid string, files []string, announceList [][]string) (t *Torrent
 		CreationDate: time.Now().Unix()}
 	for _, f := range files {
 		fi, err := os.Stat(f)
-		if !utils.CheckError(err) {
-			switch mode := fi.Mode(); {
-			case mode.IsRegular():
-				relPath, err := filepath.Rel("/", f)
-				if !utils.CheckError(err) {
-					metaInfo.Info.Files = append(
-						metaInfo.Info.Files,
-						File{
-							Length: fi.Size(),
-							Path:   strings.Split(relPath, string(filepath.Separator))})
-					metaInfo.Info.GenPieces(metaInfo.Info.Files)
-				}
-
-			default:
-				fmt.Println("directory")
+		if err != nil {
+			return nil, err
+		}
+		switch mode := fi.Mode(); {
+		case mode.IsRegular():
+			relPath, err := filepath.Rel("/", f)
+			if err != nil {
+				return nil, err
 			}
+			metaInfo.Info.Files = append(
+				metaInfo.Info.Files,
+				File{
+					Length: fi.Size(),
+					Path:   strings.Split(relPath, string(filepath.Separator))})
+			metaInfo.Info.GenPieces(metaInfo.Info.Files)
+
+		default:
+			fmt.Println("directory")
 		}
 	}
 	s, _ := json.Marshal(metaInfo)
 	log.Infof("%s", s)
 	x, _ := bencode.Marshal(metaInfo)
 	tfile, err := os.Create(jid + ".torrent")
-	if !utils.CheckError(err) {
-		defer tfile.Close()
-		tfile.Write(x)
+	if err != nil {
+		return
 	}
+	defer tfile.Close()
+	tfile.Write(x)
 	log.Errorf("%s", string(x))
-	return t
+	return
 
+}
+
+func NewTorrentFromFile(torrentFile string) (t *Torrent, err error) {
+	var (
+		c []byte
+		f *os.File
+	)
+	f, err = os.Open(torrentFile)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	for buf, reader := make([]byte, 256*1024), bufio.NewReader(f); ; {
+		_, err := reader.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+		}
+		c = append(c, buf...)
+	}
+	mi := MetaInfo{}
+	err = bencode.Unmarshal(c, &mi)
+	if err != nil {
+		return
+	}
+	t.MetaInfo = mi
+	return
 }
