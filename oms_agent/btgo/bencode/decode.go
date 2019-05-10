@@ -173,9 +173,7 @@ func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
 		val, ok := m[mkey] //TODO
 		if ok {
 			err = d.decode(val)
-			fmt.Println("wwwwww", string(ch[0]), mkey, val)
 		} else {
-			fmt.Println("xxxxx", mkey, ok)
 			ch, err := d.r.Peek(1)
 			if err != nil {
 				return err
