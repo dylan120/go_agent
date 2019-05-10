@@ -52,7 +52,7 @@ func (d *Decoder) decodeInt(v reflect.Value) (err error) {
 	}
 	s, err := strconv.ParseInt(string(data[1:len(data)-1]), 10, 0)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
 		return err
 	}
 	v.SetInt(s)
@@ -63,24 +63,25 @@ func (d *Decoder) decodeInt(v reflect.Value) (err error) {
 func (d *Decoder) decodeString(v reflect.Value) (err error) {
 	data, err := d.r.ReadBytes(':')
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
 		return err
 	}
 	length, err := strconv.ParseInt(string(data[0:len(data)-1]), 10, 0)
 	s, err := d.readNBytes(int(length))
 	if err != nil {
-		fmt.Println(">>>>", err)
+
 		return err
 	}
 
 	//d.cache = append(d.cache, s...)
 	switch v.Kind() {
 	case reflect.String:
-		//v.SetString(string(d.readCache(d.off)))
 		v.SetString(string(s))
 	case reflect.Slice:
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			v.SetBytes(s)
+		} else {
+			return errors.New("unexpected type")
 		}
 	}
 
@@ -118,7 +119,7 @@ func (d *Decoder) decodeList(v reflect.Value) (err error) {
 			return err
 		}
 	}
-	return
+	return err
 }
 
 func (d *Decoder) getStrcuctMap(m map[string]reflect.Value, v reflect.Value) {
@@ -158,7 +159,7 @@ func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
 
 		data, err := d.r.ReadBytes(':')
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println(err)
 			return err
 		}
 		length, err := strconv.ParseInt(string(data[0:len(data)-1]), 10, 0)
@@ -172,7 +173,11 @@ func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
 
 		val, ok := m[mkey] //TODO
 		if ok {
+			//fmt.Println(mkey, val.Kind())
 			err = d.decode(val)
+			if err != nil {
+				return err
+			}
 		} else {
 			ch, err := d.r.Peek(1)
 			if err != nil {
@@ -181,10 +186,10 @@ func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
 			switch ch[0] {
 			case 'i':
 				var i int
-				d.decodeInt(reflect.ValueOf(&i).Elem())
+				err = d.decodeInt(reflect.ValueOf(&i).Elem())
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				var s string
-				d.decodeString(reflect.ValueOf(&s).Elem())
+				err = d.decodeString(reflect.ValueOf(&s).Elem())
 				//case 'l':
 				//	var s []byte
 				//	d.decodeList(reflect.ValueOf(&s))
@@ -192,7 +197,7 @@ func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
 				//	d.decodeStruct(reflect.New(reflect.TypeOf(reflect.Struct)))
 
 			default:
-				err = errors.New("Unsupport type")
+				return errors.New("unsupported type")
 			}
 		}
 
@@ -229,7 +234,7 @@ func (d *Decoder) decode(v reflect.Value) (err error) {
 	val := d.indirect(v)
 	ch, err := d.r.Peek(1)
 	if err != nil {
-		return
+		return err
 	}
 	switch ch[0] {
 	case 'i':
@@ -243,5 +248,5 @@ func (d *Decoder) decode(v reflect.Value) (err error) {
 	default:
 		err = errors.New("invalid input")
 	}
-	return
+	return err
 }
