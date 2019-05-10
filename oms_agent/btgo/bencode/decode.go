@@ -13,8 +13,7 @@ import (
 type Decoder struct {
 	r     *bufio.Reader
 	cache []byte
-	//m     map[string]reflect.Value
-	off int
+	off   int
 }
 
 func NewDecoder(r io.Reader) *Decoder {
@@ -25,14 +24,12 @@ func Unmarshal(data []byte, v interface{}) (err error) {
 	buf := bytes.NewBuffer(data)
 	d := NewDecoder(buf)
 	err = d.decode(reflect.ValueOf(v))
-	fmt.Println(len(d.cache))
 	return
 }
 
 func (d *Decoder) readCache(off int) (r []byte) {
 	r = d.cache[d.off:]
 	d.off = len(d.cache)
-	fmt.Println(d.off)
 	return
 }
 
@@ -72,17 +69,18 @@ func (d *Decoder) decodeString(v reflect.Value) (err error) {
 	length, err := strconv.ParseInt(string(data[0:len(data)-1]), 10, 0)
 	s, err := d.readNBytes(int(length))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(">>>>", err)
 		return err
 	}
 
-	d.cache = append(d.cache, s...)
+	//d.cache = append(d.cache, s...)
 	switch v.Kind() {
 	case reflect.String:
-		v.SetString(string(d.readCache(d.off)))
+		//v.SetString(string(d.readCache(d.off)))
+		v.SetString(string(s))
 	case reflect.Slice:
 		if v.Type().Elem().Kind() == reflect.Uint8 {
-			v.SetBytes(d.readCache(d.off))
+			v.SetBytes(s)
 		}
 	}
 
@@ -152,19 +150,56 @@ func (d *Decoder) decodeStruct(v reflect.Value) (err error) {
 		if err != nil {
 			return err
 		}
+
 		if ch[0] == 'e' {
 			d.r.ReadByte()
 			break
 		}
-		err = d.decodeString(v)
-		mkey := string(d.readCache(d.off))
+
+		data, err := d.r.ReadBytes(':')
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		length, err := strconv.ParseInt(string(data[0:len(data)-1]), 10, 0)
+		s, err := d.readNBytes(int(length))
+		if err != nil {
+			fmt.Println(">>>>", err)
+			return err
+		}
+
+		mkey := string(s)
+
 		val, ok := m[mkey] //TODO
 		if ok {
 			err = d.decode(val)
+			fmt.Println("wwwwww", string(ch[0]), mkey, val)
+		} else {
+			fmt.Println("xxxxx", mkey, ok)
+			ch, err := d.r.Peek(1)
+			if err != nil {
+				return err
+			}
+			switch ch[0] {
+			case 'i':
+				var i int
+				d.decodeInt(reflect.ValueOf(&i).Elem())
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+				var s string
+				d.decodeString(reflect.ValueOf(&s).Elem())
+				//case 'l':
+				//	var s []byte
+				//	d.decodeList(reflect.ValueOf(&s))
+				//case 'd':
+				//	d.decodeStruct(reflect.New(reflect.TypeOf(reflect.Struct)))
+
+			default:
+				err = errors.New("Unsupport type")
+			}
 		}
 
 	}
-	return
+	return err
 }
 
 func (d *Decoder) indirect(v reflect.Value) reflect.Value {
@@ -181,7 +216,7 @@ func (d *Decoder) indirect(v reflect.Value) reflect.Value {
 			break
 		}
 		if v.Elem().Kind() != reflect.Ptr && v.CanSet() {
-
+			v = v.Elem()
 			break
 		}
 		if v.IsNil() {
